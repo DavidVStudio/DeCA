@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'self' https://api.github.com https://*.github.io; object-src 'none'; base-uri 'none'; form-action 'none'">
-<title>Generador de DeCA y carta de porte</title>
 <meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'self' https://api.github.com https://*.github.io; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Generador de DeCA y documento ADR</title>
 <style>
  body{font-family:system-ui,sans-serif;max-width:940px;margin:0 auto;padding:16px;background:#f6f7f9;color:#1b1f24}
  h1{font-size:1.4rem} fieldset{background:#fff;border:1px solid #d5d9df;border-radius:8px;margin:14px 0;padding:12px 16px}
@@ -22,28 +22,34 @@
  button:disabled{opacity:.6} button.s{background:#4b5563} button.x{background:#b3261e;padding:8px 10px}
  .note{font-size:.82rem;color:#333;background:#fff8e1;border:1px solid #d9b94c;border-radius:6px;padding:8px 10px}
  #log div{margin:3px 0} #log{margin-top:12px;font-size:.9rem;word-break:break-all;line-height:1.5} .ok{color:#0a6b2a} .er{color:#a8201a}
- details summary{cursor:pointer;font-weight:600} small{color:#444}
+ details summary{cursor:pointer;font-weight:600}
 </style>
 </head>
 <body>
 <main>
-<h1>Generador de DeCA / albarán / carta de porte</h1>
+<h1>Generador de DeCA / albarán / documento de transporte ADR</h1>
 <p class="note">Resolución de 5/6/2026 (BOE-A-2026-12784). Numeración AAAAMMDD-XXX con reserva previa, QR automático, subida a GitHub y verificación de la URL. El DeCA debe generarse y subirse <b>antes del inicio del servicio</b> y conservarse al menos un año. Los campos con * son obligatorios.</p>
 <div id="sri" class="note" role="status" hidden></div>
+
+<fieldset><legend>Ajustes protegidos</legend>
+ <p id="lockst" role="status">Los ajustes (casillas) están bloqueados con sus valores por defecto. Es un bloqueo contra cambios accidentales, no una medida de seguridad.</p>
+ <label for="adm">Contraseña de ajustes</label><input id="adm" type="password" autocomplete="off">
+ <button onclick="unlockSettings()">Desbloquear ajustes</button><button class="s" onclick="setLock(true)">Bloquear</button>
+</fieldset>
 
 <fieldset><legend>Repositorios y sincronización</legend>
 <details><summary>Configuración de GitHub</summary>
  <div class="g">
   <div><label for="g_owner">Usuario</label><input id="g_owner" value="DavidVStudio" autocomplete="off"></div>
-  <div><label for="g_repo">Repositorio público (PDFs)</label><input id="g_repo" value="DeCA" autocomplete="off"></div>
+  <div><label for="g_repo">Repositorio público (PDFs y aplicación)</label><input id="g_repo" value="DeCA" autocomplete="off"></div>
   <div><label for="g_branch">Rama</label><input id="g_branch" value="main" autocomplete="off"></div>
   <div><label for="g_dir">Carpeta de PDFs</label><input id="g_dir" value="pdf" autocomplete="off"></div>
  </div>
  <label for="g_base">URL base pública (GitHub Pages)</label><input id="g_base" value="https://davidvstudio.github.io/DeCA/pdf/" autocomplete="off">
- <label for="g_token">Token de acceso (fine-grained, con acceso solo a los repositorios de PDFs y de datos, Contents: Read and write, con caducidad)</label>
+ <label for="g_token">Token de acceso (fine-grained, solo repositorios DeCA y DeCA-datos; Contents: Read and write; Pages: Read-only; con caducidad)</label>
  <input id="g_token" type="password" autocomplete="off" placeholder="github_pat_…">
- <label><input type="checkbox" id="g_rem"> Recordar el token solo durante esta sesión del navegador</label>
- <label><input type="checkbox" id="g_perm"> Recordar el token de forma permanente en este equipo</label>
+ <label><input type="checkbox" class="lock" id="g_rem"> Recordar el token solo durante esta sesión del navegador</label>
+ <label><input type="checkbox" class="lock" id="g_perm"> Recordar el token de forma permanente en este equipo</label>
  <label for="g_pass">Contraseña local para cifrar el token (muy recomendada; se pedirá al abrir la aplicación; no se guarda)</label>
  <input id="g_pass" type="password" autocomplete="new-password">
  <div id="unlock" class="note" hidden>
@@ -52,14 +58,12 @@
   <button onclick="unlock()">Desbloquear</button>
  </div>
  <button class="s" onclick="forgetToken()">Olvidar el token guardado en este equipo</button>
- <label><input type="checkbox" id="g_rnd" checked> Añadir sufijo aleatorio al nombre del archivo (URL no adivinable)</label>
+ <label><input type="checkbox" class="lock" id="g_rnd"> Añadir sufijo aleatorio al nombre del archivo (URL no adivinable)</label>
  <button class="s" onclick="check()">Comprobar configuración y GitHub Pages</button>
  <hr>
- <p><b>Catálogo sincronizado entre dispositivos</b> (empresas, mercancías, ADR…). Se guarda en un repositorio <b>privado</b> aparte; la app se niega a usarlo si es público. <b>Nunca</b> se sincronizan datos del conductor ni de personas físicas (NIF/DNI/NIE).</p>
- <div class="g">
-  <div><label for="g_drepo">Repositorio PRIVADO de datos</label><input id="g_drepo" value="DeCA-datos" autocomplete="off"></div>
- </div>
- <label><input type="checkbox" id="sync_on"> Activar sincronización del catálogo</label>
+ <p><b>Catálogo sincronizado entre dispositivos</b> (empresas, mercancías, ADR…). Se guarda en un repositorio <b>privado</b> aparte y se sincroniza al iniciar. La app se niega a usarlo si es público. <b>Nunca</b> se sincronizan datos del conductor ni de personas físicas (NIF/DNI/NIE).</p>
+ <div class="g"><div><label for="g_drepo">Repositorio PRIVADO de datos</label><input id="g_drepo" value="DeCA-datos" autocomplete="off"></div></div>
+ <label><input type="checkbox" class="lock" id="sync_on"> Registrar todo en DeCA-datos (catálogo sincronizado)</label>
  <button class="s" onclick="syncNow()">Sincronizar ahora</button>
  <button class="s" onclick="cloudClear()">Vaciar catálogo en la nube</button>
 </details></fieldset>
@@ -67,30 +71,30 @@
 <fieldset><legend>Cargador contractual</legend><div class="g" id="gc"></div></fieldset>
 <fieldset><legend>Transportista efectivo y conductor</legend><div class="g" id="gt"></div></fieldset>
 <fieldset><legend>Origen</legend><div class="g" id="go"></div>
- <label><input type="checkbox" id="sync_o"> Es una empresa: recordar en todos mis dispositivos (no marcar si es una persona física)</label></fieldset>
+ <label><input type="checkbox" class="lock" id="sync_o"> Origen como empresa: recordar en todos mis dispositivos (solo si la denominación parece de empresa: S.L., S.A., etc.)</label></fieldset>
 <fieldset><legend>Destino y destinatario</legend><div class="g" id="gd"></div>
- <label><input type="checkbox" id="sync_d"> El destino es una empresa: recordar en todos mis dispositivos (no marcar si es una persona física)</label></fieldset>
+ <label><input type="checkbox" class="lock" id="sync_d"> Destino como empresa: recordar en todos mis dispositivos (solo si la denominación parece de empresa)</label></fieldset>
 
 <fieldset><legend>Mercancía</legend>
  <div id="lines"></div>
  <button class="s" onclick="addLine()">+ Añadir línea</button>
- <p class="note">Mercancías peligrosas (ADR): el documento de transporte del ADR 5.4.1 exige además cantidad total, número y descripción de los bultos, expedidor y destinatario, y, si procede, la declaración de exención 1.1.3.6. Confírmalo con tu consejero de seguridad.</p>
  <label for="obs">Observaciones (opcional, máx. 900 caracteres)</label><textarea id="obs" rows="2" maxlength="900"></textarea>
 </fieldset>
 
-<fieldset><legend>Contrato de transporte (carta de porte)</legend>
- <label><input type="checkbox" id="cp_on" checked> El documento impreso sirve también como carta de porte (Ley 15/2009)</label>
- <div class="g" id="gp"></div>
- <label for="pago">Forma de pago del porte</label>
- <select id="pago"><option value="">—</option><option>Porte pagado (por el cargador)</option><option>Porte debido (por el destinatario)</option><option>Según contrato o condiciones pactadas</option></select>
+<fieldset><legend>Datos complementarios del transporte</legend><div class="g" id="gp"></div></fieldset>
+
+<fieldset><legend>Mercancías peligrosas (ADR): datos del documento</legend>
+ <p class="note">Solo se aplica si alguna línea está marcada como mercancía peligrosa. El documento de transporte del ADR (5.4.1) exige, entre otros datos: por cada materia, nº ONU, designación oficial, peligro, grupo de embalaje y código de túnel; nº y descripción de bultos; cantidad total; y expedidor y destinatario con su dirección. Confirma el contenido con tu consejero de seguridad ADR.</p>
+ <label><input type="checkbox" id="adr_ex"> Acogida a la exención 1.1.3.6 (requiere categoría de transporte en todas las líneas; máximo 1000 puntos; no admite categoría 0)</label>
+ <label><input type="checkbox" id="adr_ins"> Se han entregado al conductor las instrucciones escritas ADR (5.4.3)</label>
 </fieldset>
 
 <fieldset><legend>Opciones del documento y protección de datos</legend>
  <label for="sus">Sustituye al DeCA nº (solo si es una modificación; el original se conserva)</label><input id="sus" placeholder="20261018-001" autocomplete="off" maxlength="13">
- <label><input type="checkbox" id="inc_pd"> Incluir DNI y teléfono del conductor en el PDF (no exigidos por la norma; el PDF es accesible para quien tenga el enlace)</label>
+ <label><input type="checkbox" class="lock" id="inc_pd"> Incluir DNI y teléfono del conductor en el PDF (no exigidos por la norma; el PDF es accesible para quien tenga el enlace)</label>
  <label for="g_dpo">Contacto para ejercer derechos de protección de datos (email o teléfono; obligatorio si incluyes DNI/teléfono)</label><input id="g_dpo" autocomplete="off" maxlength="120">
- <label><input type="checkbox" id="foreign"> Permitir identificadores no españoles (no validar formato de NIF/DNI)</label>
- <label><input type="checkbox" id="mem_on"> Recordar TODOS los datos (incluidos los del conductor) solo en este equipo; se borran a los 180 días; no usar en equipos compartidos</label>
+ <label><input type="checkbox" class="lock" id="foreign"> Permitir identificadores no españoles (no validar formato de NIF/DNI)</label>
+ <label><input type="checkbox" class="lock" id="mem_on"> Recordar TODOS los datos (incluidos los del conductor) solo en este equipo; se borran a los 180 días; no usar en equipos compartidos</label>
 </fieldset>
 
 <button id="bgo" onclick="run(true)">Generar, subir y verificar</button>
@@ -117,16 +121,25 @@ const libsReady=Promise.all(LIBS.map(([k,u])=>new Promise((res,rej)=>{const s=do
 if(Object.values(SRI).some(v=>!v)){const b=$('sri');b.hidden=false;b.textContent='Aviso de seguridad: las librerías se cargan sin verificación de integridad (SRI). Rellena el objeto SRI del código con los hashes de cdnjs.';}
 
 /* ---------- Formulario ---------- */
-const NUM='type="number" step="0.01" min="0"';
 const FORM={
  gc:[['c_nom','Nombre o denominación social *',1],['c_nif','NIF *',1],['c_dir','Domicilio']],
  gt:[['t_nom','Nombre o denominación social *',1],['t_nif','NIF *',1],['t_mat','Matrícula del vehículo'],['f_srv','Fecha y hora previstas de inicio del servicio *',1,'type="datetime-local"'],['h_nom','Nombre del conductor'],['h_dni','DNI/NIE del conductor'],['h_tel','Teléfono del conductor',0,'type="tel" autocomplete="tel"']],
  go:[['o_nom','Lugar / empresa de origen *',1],['o_dir','Dirección'],['o_loc','C.P. y población']],
  gd:[['d_nom','Lugar / empresa de destino *',1],['d_dir','Dirección'],['d_loc','C.P. y población'],['r_nom','Destinatario (nombre o razón social)'],['r_nif','NIF del destinatario']],
- gp:[['e_lug','Lugar de emisión'],['x_nom','Expedidor, si es distinto del cargador (nombre y dirección)'],['mrc','Marcas y números de los bultos'],['prc','Precio del transporte (€)',0,NUM],['gst','Gastos accesorios (€)',0,NUM],['rbs','Reembolso / contrarreembolso (€)',0,NUM],['vld','Valor declarado de la mercancía (€)',0,NUM],['ins','Instrucciones del cargador (aduanas, entrega…)'],['res','Reservas / observaciones del porteador al recibir la mercancía']]};
+ gp:[['e_lug','Lugar de emisión'],['x_nom','Expedidor, si es distinto del cargador (nombre y dirección)'],['mrc','Marcas y números de los bultos'],['ins','Instrucciones del cargador'],['res','Reservas / observaciones al recibir la mercancía']]};
 const LAB={};
 Object.entries(FORM).forEach(([g,fs])=>{$(g).innerHTML=fs.map(([id,lab,req,ex])=>{LAB[id]=lab.replace(' *','');ex=ex||'';
  return '<div><label for="'+id+'">'+lab+'</label><input id="'+id+'" maxlength="150" '+(req?'required aria-required="true" ':'')+(ex.includes('autocomplete')?'':'autocomplete="off" ')+ex+'></div>';}).join('');});
+
+/* ---------- Ajustes protegidos ---------- */
+const ADMIN_HASH='7a86187ccf5fb6831dd763b619b1f3c9faa9d89560113382fac82f361d9e38c4';
+const TXT=new TextEncoder();
+async function sha(s){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',TXT.encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join('');}
+function setLock(on){document.querySelectorAll('.lock').forEach(c=>c.disabled=on);
+ $('lockst').textContent=on?'Los ajustes (casillas) están bloqueados con sus valores por defecto. Es un bloqueo contra cambios accidentales, no una medida de seguridad.':'Ajustes desbloqueados hasta que cierres o recargues la página.';}
+async function unlockSettings(){try{if((await sha($('adm').value))===ADMIN_HASH){setLock(false);$('adm').value='';}else log('Contraseña de ajustes incorrecta.','er');}catch(e){log('No se pudo comprobar la contraseña: '+e.message,'er');}}
+['g_rnd','sync_on','sync_o','sync_d'].forEach(id=>$(id).checked=true);
+setLock(true);
 
 /* ---------- Memoria: local (opt-in, todo) y nube (solo no personal) ---------- */
 const MEMF=['c_nom','c_nif','c_dir','t_nom','t_nif','t_mat','h_nom','h_dni','h_tel','o_nom','o_dir','o_loc','d_nom','d_dir','d_loc','r_nom','r_nif','e_lug','x_nom','mrc','ins','res'];
@@ -135,12 +148,12 @@ const GROUPS={c:['c_nom','c_nif','c_dir'],t:['t_nom','t_nif'],h:['h_nom','h_dni'
 const DEF={tb:['Palé','Caja','Saco','Bidón','Rollo','Granel','Otros'],tn:['(B)','(B/D)','(B/E)','(C/D)','(C/E)','(D/E)','(E)','-'],pl:['1','2.1','2.2','2.3','3','4.1','4.2','4.3','5.1','5.2','6.1','6.2','7','8','9']};
 const BADK=new Set(['__proto__','constructor','prototype']);
 const LOC={mem:{},prof:{}},CLD={mem:{},prof:{}};
-const safeParse=(t)=>{try{const v=JSON.parse(t||'{}');return v&&typeof v==='object'?v:{}}catch(e){return {}}};
+const safeParse=t=>{try{const v=JSON.parse(t||'{}');return v&&typeof v==='object'?v:{}}catch(e){return {}}};
 function load(S,raw){const o=safeParse(raw);if(o.mem&&typeof o.mem==='object')S.mem=o.mem;if(o.prof&&typeof o.prof==='object')S.prof=o.prof;}
 if(store.get('deca_mem_on')==='1'){
  if(Date.now()-(parseInt(store.get('deca_loc_ts'),10)||0)>180*864e5){['deca_loc','deca_loc_ts','deca_mem_on'].forEach(k=>store.del(k));}
  else{load(LOC,store.get('deca_loc'));$('mem_on').checked=true;}}
-if(store.get('deca_sync_on')==='1'){$('sync_on').checked=true;load(CLD,store.get('deca_cld'));}
+load(CLD,store.get('deca_cld'));
 const look=(g,n)=>((LOC.prof[g]||{})[n])||((CLD.prof[g]||{})[n]);
 function dl(key){let el=$('dl_'+key);if(!el){el=document.createElement('datalist');el.id='dl_'+key;document.body.appendChild(el);}
  const a=k=>Array.isArray(k)?k:[];
@@ -153,12 +166,14 @@ MEMF.forEach(k=>$(k).setAttribute('list','dl_'+k));
 Object.entries(GROUPS).forEach(([g,f])=>$(f[0]).addEventListener('change',()=>{
  const p=look(g,$(f[0]).value.trim());if(p)f.slice(1).forEach(k=>{if(typeof p[k]==='string')$(k).value=p[k];});}));
 
+function looksCompany(name){const n=' '+String(name).toUpperCase().replace(/[.,()]/g,' ').replace(/\s+/g,' ')+' ';
+ return [' S L ',' SL ',' SLU ',' S L U ',' SA ',' S A ',' SAU ',' S A U ',' SLL ',' S L L ',' SCOOP ',' S COOP ',' SC ',' S C ',' CB ',' C B ',' SRL ',' SOCIEDAD ',' COOPERATIVA ',' FUNDACION ',' FUNDACIÓN ',' ASOCIACION ',' ASOCIACIÓN ',' AYUNTAMIENTO ',' COMUNIDAD DE BIENES ',' LTD ',' GMBH ',' SAS ',' SARL ',' SPA ',' BV ',' NV ',' AG ',' INC ',' LLC '].some(t=>n.includes(t));}
 /* Reglas: qué puede ir a la nube (nunca personas físicas ni conductor) */
 function cloudRules(){const f=$('foreign').checked;return{
  c:!f&&cifOk($('c_nif').value),t:!f&&cifOk($('t_nif').value),r:!f&&$('r_nif').value.trim()!==''&&cifOk($('r_nif').value),
- o:$('sync_o').checked,d:$('sync_d').checked,h:false};}
+ o:$('sync_o').checked&&looksCompany($('o_nom').value),d:$('sync_d').checked&&looksCompany($('d_nom').value),h:false};}
 function readLines(){return [...document.querySelectorAll('.lw')].map(w=>{const q=s=>w.querySelector(s).value.trim();return{
- lc:q('.lc'),n:q('.ln'),t:q('.lt'),a:w.querySelector('.la').checked,u:q('.lu'),ds:q('.ld'),pl:q('.lh'),ge:q('.lg'),tn:q('.lk')};});}
+ lc:q('.lc'),n:q('.ln'),t:q('.lt'),a:w.querySelector('.la').checked,u:q('.lu'),ds:q('.ld'),pl:q('.lh'),ge:q('.lg'),tn:q('.lk'),cat:q('.lcat')};});}
 function writeStore(S,cloud){
  const ok=cloud?cloudRules():{c:1,t:1,h:1,o:1,d:1,r:1};
  Object.entries(GROUPS).forEach(([g,f])=>{if(!ok[g])return;f.forEach(k=>addMem(S,k,$(k).value));
@@ -170,13 +185,13 @@ function writeStore(S,cloud){
   addMem(S,'n',l.n);addMem(S,'lc',l.lc);addMem(S,'tb',l.t);
   const un=l.a?('UN'+(l.u.match(/\d{4}/)||[''])[0]):'';
   setProf(S,'gp',l.n,{lc:l.lc,t:l.t,u:un});
-  if(l.a&&un.length===6){addMem(S,'un',un);addMem(S,'ds',l.ds);addMem(S,'pl',l.pl);addMem(S,'tn',l.tn);setProf(S,'ad',un,{ds:l.ds,pl:l.pl,ge:l.ge,tn:l.tn});}});
+  if(l.a&&un.length===6){addMem(S,'un',un);addMem(S,'ds',l.ds);addMem(S,'pl',l.pl);addMem(S,'tn',l.tn);setProf(S,'ad',un,{ds:l.ds,pl:l.pl,ge:l.ge,tn:l.tn,cat:l.cat});}});
 }
 function cacheCld(){if($('sync_on').checked)store.set('deca_cld',JSON.stringify({mem:CLD.mem,prof:CLD.prof}));}
 function saveLoc(){store.set('deca_mem_on','1');store.set('deca_loc',JSON.stringify(LOC));store.set('deca_loc_ts',String(Date.now()));}
 function forget(say){LOC.mem={};LOC.prof={};CLD.mem={};CLD.prof={};['deca_loc','deca_loc_ts','deca_mem_on','deca_cld'].forEach(k=>store.del(k));dlAll();if(say)log('Datos recordados borrados de este equipo (el catálogo en la nube no se toca).');}
 $('mem_on').addEventListener('change',()=>{if(!$('mem_on').checked){LOC.mem={};LOC.prof={};['deca_loc','deca_loc_ts','deca_mem_on'].forEach(k=>store.del(k));dlAll();log('Memoria local de datos desactivada y borrada.');}});
-$('sync_on').addEventListener('change',()=>{if($('sync_on').checked){store.set('deca_sync_on','1');if($('g_token').value.trim())pull().catch(e=>log(e.message,'er'));}else{store.del('deca_sync_on');store.del('deca_cld');}});
+$('sync_on').addEventListener('change',()=>{if($('sync_on').checked)startSync();});
 
 /* ---------- Sincronización con repositorio PRIVADO ---------- */
 let dPriv=false,pulled=false,cldSha=null;
@@ -208,14 +223,13 @@ async function push(){
   if(r.status===409||r.status===422){await pull();continue;}
   throw new Error(rateMsg(r)||'No se pudo guardar el catálogo (HTTP '+r.status+').');}
  throw new Error('Conflicto al guardar el catálogo; reintenta.');}
-async function syncNow(){$('log').innerHTML='';try{if(!$('sync_on').checked)throw new Error('Activa primero la sincronización del catálogo.');await pull();await push();log('Catálogo sincronizado.','ok');}catch(e){log(e.message,'er');}}
+function startSync(){if($('sync_on').checked&&$('g_token').value.trim())pull().then(()=>log('Catálogo sincronizado al iniciar.','ok')).catch(e=>log(e.message,'er'));}
+async function syncNow(){$('log').innerHTML='';try{if(!$('sync_on').checked)throw new Error('La sincronización está desactivada (ajuste protegido).');await pull();await push();log('Catálogo sincronizado.','ok');}catch(e){log(e.message,'er');}}
 async function cloudClear(){$('log').innerHTML='';try{if(!confirm('¿Borrar el catálogo guardado en la nube (repositorio privado)?'))return;await dEnsure();await pull();
  if(cldSha){const r=await gh(dcfg(),'/contents/catalogo.json',{method:'DELETE',body:JSON.stringify({message:'Borrado del catálogo',sha:cldSha})},2);if(!r.ok)throw new Error('No se pudo borrar (HTTP '+r.status+').');}
  CLD.mem={};CLD.prof={};cldSha=null;cacheCld();dlAll();log('Catálogo en la nube vaciado.','ok');}catch(e){log(e.message,'er');}}
-$('g_token').addEventListener('change',()=>{persistToken();if($('sync_on').checked&&$('g_token').value.trim())pull().catch(e=>log(e.message,'er'));});
 
 /* ---------- Token: recordar de forma permanente (cifrado opcional) ---------- */
-const TXT=new TextEncoder();
 const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function dkey(pass,salt){const km=await crypto.subtle.importKey('raw',TXT.encode(pass),'PBKDF2',false,['deriveKey']);
  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
@@ -227,8 +241,7 @@ async function decTok(json,pass){const o=JSON.parse(json);
 async function persistToken(){
  const tok=$('g_token').value.trim();if(!tok)return;
  try{
-  if($('g_perm').checked){
-   const pass=$('g_pass').value;
+  if($('g_perm').checked){const pass=$('g_pass').value;
    if(pass){store.set('deca_tokc',await encTok(tok,pass));store.del('deca_tok');}
    else if(!store.get('deca_tokc')){store.set('deca_tok',tok);}
    sess.del('deca_tok');}
@@ -238,15 +251,16 @@ async function persistToken(){
 function forgetToken(){['deca_tok','deca_tokc'].forEach(k=>{store.del(k);sess.del(k);});$('g_token').value='';$('g_pass').value='';$('g_perm').checked=false;$('g_rem').checked=false;$('unlock').hidden=true;dPriv=false;pulled=false;log('Token borrado de este equipo.','ok');}
 async function unlock(){
  try{$('g_token').value=await decTok(store.get('deca_tokc'),$('u_pass').value);$('unlock').hidden=true;$('u_pass').value='';$('g_perm').checked=true;
-  log('Token desbloqueado.','ok');if($('sync_on').checked)pull().catch(e=>log(e.message,'er'));}
+  log('Token desbloqueado.','ok');startSync();}
  catch(e){log('Contraseña incorrecta o datos dañados.','er');}}
+$('g_token').addEventListener('change',()=>{persistToken();startSync();});
 
 /* ---------- Configuración persistente (sin datos personales) ---------- */
 const SAVE=['g_owner','g_repo','g_branch','g_dir','g_base','g_drepo'];
 SAVE.forEach(id=>{const v=store.get('deca_'+id);if(v)$(id).value=v;});
 if(store.get('deca_tokc')){$('unlock').hidden=false;$('g_perm').checked=true;}
-else if(store.get('deca_tok')){$('g_token').value=store.get('deca_tok');$('g_perm').checked=true;if($('sync_on').checked)pull().catch(e=>log(e.message,'er'));}
-else if(sess.get('deca_tok')){$('g_token').value=sess.get('deca_tok');$('g_rem').checked=true;if($('sync_on').checked)pull().catch(e=>log(e.message,'er'));}
+else if(store.get('deca_tok')){$('g_token').value=store.get('deca_tok');$('g_perm').checked=true;startSync();}
+else if(sess.get('deca_tok')){$('g_token').value=sess.get('deca_tok');$('g_rem').checked=true;startSync();}
 
 /* ---------- Líneas de mercancía ---------- */
 let lineN=0;
@@ -256,23 +270,26 @@ function addLine(){const n=++lineN,d=document.createElement('div');d.className='
  '<div><label for="ln_'+n+'">Descripción / naturaleza *</label><input id="ln_'+n+'" class="ln" list="dl_n" maxlength="200" required aria-required="true" autocomplete="off"></div>'+
  '<div><label for="lb_'+n+'">Nº de bultos</label><input id="lb_'+n+'" class="lb" type="number" min="0" step="1"></div>'+
  '<div><label for="lt_'+n+'">Tipo de bulto</label><input id="lt_'+n+'" class="lt" list="dl_tb" maxlength="40" autocomplete="off"></div>'+
- '<div><label for="lp_'+n+'">Peso (kg) *</label><input id="lp_'+n+'" class="lp" type="number" min="0" step="any" required aria-required="true"></div>'+
+ '<div><label for="lp_'+n+'">Peso bruto (kg) *</label><input id="lp_'+n+'" class="lp" type="number" min="0" step="any" required aria-required="true"></div>'+
  '<button class="x" aria-label="Quitar línea de mercancía" onclick="this.closest(\'.lw\').remove()">✕</button></div>'+
  '<label><input type="checkbox" class="la" id="la_'+n+'"> Mercancía peligrosa (ADR)</label>'+
  '<div class="adr" hidden><div class="g">'+
  '<div><label for="lu_'+n+'">Nº ONU *</label><input id="lu_'+n+'" class="lu" list="dl_un" placeholder="UN1203" maxlength="8" autocomplete="off"></div>'+
- '<div><label for="ld_'+n+'">Designación oficial de transporte *</label><input id="ld_'+n+'" class="ld" list="dl_ds" maxlength="150" autocomplete="off"></div>'+
- '<div><label for="lh_'+n+'">Peligro (clase y riesgos subsidiarios) *</label><input id="lh_'+n+'" class="lh" list="dl_pl" placeholder="3 (6.1)" maxlength="30" autocomplete="off"></div>'+
+ '<div><label for="ld_'+n+'">Designación oficial de transporte (con nombre técnico si procede) *</label><input id="ld_'+n+'" class="ld" list="dl_ds" maxlength="200" autocomplete="off"></div>'+
+ '<div><label for="lh_'+n+'">Peligro: clase y riesgos subsidiarios *</label><input id="lh_'+n+'" class="lh" list="dl_pl" placeholder="3 (6.1)" maxlength="30" autocomplete="off"></div>'+
  '<div><label for="lg_'+n+'">Grupo de embalaje</label><select id="lg_'+n+'" class="lg"><option value="">No aplica</option><option>I</option><option>II</option><option>III</option></select></div>'+
  '<div><label for="lk_'+n+'">Código de restricción en túneles *</label><input id="lk_'+n+'" class="lk" list="dl_tn" placeholder="(D/E)" maxlength="12" autocomplete="off"></div>'+
- '</div></div>';
+ '<div><label for="lq_'+n+'">Cantidad total *</label><input id="lq_'+n+'" class="lq" type="number" min="0" step="any"></div>'+
+ '<div><label for="lm_'+n+'">Unidad de la cantidad *</label><select id="lm_'+n+'" class="lm"><option>kg (masa bruta)</option><option>kg (masa neta)</option><option>L (volumen)</option><option>kg (NEQ, explosivos)</option></select></div>'+
+ '<div><label for="lcat_'+n+'">Categoría de transporte (1.1.3.6)</label><select id="lcat_'+n+'" class="lcat"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select></div>'+
+ '</div><label><input type="checkbox" class="lev"> Peligrosa para el medio ambiente</label><label><input type="checkbox" class="lwt"> Residuo</label></div>';
  $('lines').appendChild(d);}
 addLine();
 $('lines').addEventListener('change',e=>{const t=e.target,w=t.closest('.lw');if(!w)return;const set=(s,v)=>{const el=w.querySelector(s);if(el&&!el.value&&typeof v==='string')el.value=v;};
  if(t.classList.contains('la')){w.querySelector('.adr').hidden=!t.checked;return;}
- if(t.classList.contains('lu')){const p=look('ad',normUN(t.value));if(p){t.value=normUN(t.value);set('.ld',p.ds);set('.lh',p.pl);set('.lg',p.ge);set('.lk',p.tn);}}
+ if(t.classList.contains('lu')){const p=look('ad',normUN(t.value));if(p){t.value=normUN(t.value);set('.ld',p.ds);set('.lh',p.pl);set('.lg',p.ge);set('.lk',p.tn);set('.lcat',p.cat);}}
  if(t.classList.contains('ln')){const p=look('gp',t.value.trim());if(!p)return;set('.lc',p.lc);set('.lt',p.t);
-  if(p.u){const c=w.querySelector('.la');c.checked=true;w.querySelector('.adr').hidden=false;set('.lu',p.u);const a=look('ad',p.u);if(a){set('.ld',a.ds);set('.lh',a.pl);set('.lg',a.ge);set('.lk',a.tn);}}}});
+  if(p.u){const c=w.querySelector('.la');c.checked=true;w.querySelector('.adr').hidden=false;set('.lu',p.u);const a=look('ad',p.u);if(a){set('.ld',a.ds);set('.lh',a.pl);set('.lg',a.ge);set('.lk',a.tn);set('.lcat',a.cat);}}}});
 const normUN=v=>{const m=String(v).match(/\d{4}/);return m?'UN'+m[0]:String(v).trim();};
 
 /* ---------- Utilidades ---------- */
@@ -317,6 +334,8 @@ async function reserve(c,ym,code){
  const r=await gh(c,'/contents/registro/'+ym+'/'+code+'.txt',{method:'PUT',body:JSON.stringify({message:'Reserva '+code,content:btoa(code+' '+new Date().toISOString()),branch:c.branch})});
  if(r.status===201||r.status===200)return true;if(r.status===422||r.status===409)return false;
  throw new Error(rateMsg(r)||'No se pudo reservar el número (HTTP '+r.status+'). Revisa token, permisos y rama.');}
+async function ensureNojekyll(c){try{const r=await gh(c,'/contents/.nojekyll?ref='+encodeURIComponent(c.branch));
+ if(r.status===404)await gh(c,'/contents/.nojekyll',{method:'PUT',body:JSON.stringify({message:'Añade .nojekyll',content:btoa('\n'),branch:c.branch})});}catch(e){}}
 
 /* ---------- Diagnóstico ---------- */
 async function check(){
@@ -329,6 +348,13 @@ async function check(){
   if(j.default_branch!==c.branch)log('La rama configurada ('+c.branch+') no es la rama por defecto ('+j.default_branch+'). Pages debe usar la misma rama donde se suben los PDFs.','er');
   const exp='https://'+j.owner.login.toLowerCase()+'.github.io/'+j.name+'/'+c.dir+'/';
   logH('URL base esperada: '+esc(exp)+(c.base===exp?' <span class="ok">(coincide)</span>':' <span class="er">(difiere de la configurada: '+esc(c.base)+')</span>'));
+  const pr=await gh(c,'/pages',{},2);
+  if(pr.ok){const p=await pr.json();
+   logH('GitHub Pages: estado <b>'+esc(p.status||'—')+'</b>, tipo de despliegue <b>'+esc(p.build_type||'—')+'</b>, origen: rama <b>'+esc((p.source||{}).branch||'—')+'</b>, carpeta <b>'+esc((p.source||{}).path||'—')+'</b>');
+   if(p.build_type==='workflow')log('Pages está configurado con «GitHub Actions» y no publicará tus carpetas. Cámbialo en Settings → Pages → Source → «Deploy from a branch».','er');
+   else if((p.source||{}).branch!==c.branch||(p.source||{}).path!=='/')log('Pages debe publicar la rama «'+c.branch+'» y la carpeta «/ (root)».','er');}
+  else if(pr.status===404)log('GitHub Pages no está activado, o el token no tiene el permiso «Pages: Read-only». Actívalo en Settings → Pages.','er');
+  else log('No se pudo consultar el estado de Pages (HTTP '+pr.status+').');
   const n=new Date(),yy=String(n.getFullYear()),mm=pad(n.getMonth()+1);
   const r=await gh(c,'/contents/'+c.dir+'/'+yy+'/'+mm+'?ref='+encodeURIComponent(c.branch),{},2);
   if(r.status===404){log('Aún no hay PDFs este mes (la carpeta se creará con el primer DeCA).');return;}
@@ -340,12 +366,14 @@ async function check(){
    if(t.ok&&(t.headers.get('content-type')||'').includes('pdf'))log('✔ Pages funciona: la URL descarga el PDF.','ok');
    else{const body=t.ok?'':await t.text();
     if(/There isn.t a GitHub Pages site here/i.test(body))log('GitHub Pages NO está activado (Settings → Pages → Deploy from a branch → rama '+j.default_branch+', carpeta / (root)).','er');
-    else log('La URL responde HTTP '+t.status+'. Si acabas de activar Pages, espera unos minutos y revisa la pestaña Actions ("pages build and deployment").','er');}
+    else log('La URL responde HTTP '+t.status+'. Las subcarpetas no son el problema; revisa el estado de Pages (arriba) y la pestaña Actions («pages build and deployment»). Si acabas de subir el archivo, espera 1-3 minutos.','er');}
   }catch(e){log('No se pudo probar la URL desde el navegador ('+e.message+'). Ábrela en una ventana privada.');}
  }catch(e){log(e.message,'er');}
 }
 
 /* ---------- Lectura y validación ---------- */
+const FACT={1:50,2:3,3:1,4:0};
+let lastPts=0;
 function readForm(upload){
  ['c_nom','c_nif','t_nom','t_nif','o_nom','d_nom','f_srv'].forEach(k=>{if(!$(k).value.trim())vErr(k,'Campo obligatorio: '+LAB[k]+'.');});
  if(!$('foreign').checked){
@@ -353,41 +381,50 @@ function readForm(upload){
   if($('r_nif').value.trim()&&!nifOk($('r_nif').value))vErr('r_nif','El NIF del destinatario no es válido.');
   if($('h_dni').value.trim()&&!dniNie($('h_dni').value))vErr('h_dni','El DNI/NIE del conductor no es válido.');}
  if($('h_tel').value.trim()&&!/^[+\d][\d\s().-]{6,19}$/.test($('h_tel').value.trim()))vErr('h_tel','Teléfono no válido.');
- ['prc','gst','rbs','vld'].forEach(k=>{if($(k).value!==''&&!(+$(k).value>=0))vErr(k,LAB[k]+': importe no válido.');});
  const start=new Date($('f_srv').value);if(isNaN(start))vErr('f_srv','Fecha y hora de inicio no válidas.');
  if(upload&&start.getTime()<Date.now())vErr('f_srv','El DeCA debe generarse antes del inicio efectivo del servicio (Resolución, apartado primero.2). Indica una fecha y hora futuras.');
  if($('sus').value.trim()&&!/^\d{8}-\d{3}$/.test($('sus').value.trim()))vErr('sus','El nº del DeCA sustituido debe tener el formato AAAAMMDD-XXX.');
  if($('inc_pd').checked&&!$('g_dpo').value.trim())vErr('g_dpo','Indica un contacto para ejercer derechos de protección de datos, o desmarca la inclusión de DNI y teléfono.');
- const lines=[];
+ const lines=[];let pts=0,anyAdr=false;
  document.querySelectorAll('.lw').forEach(w=>{const q=s=>w.querySelector(s),n=q('.ln'),b=q('.lb'),t=q('.lt'),p=q('.lp'),c=q('.lc');
   if(!(n.value.trim()||b.value||t.value.trim()||p.value||c.value.trim()))return;
   if(!n.value.trim())vErr(n.id,'Cada línea necesita descripción.');
   const pv=parseFloat(p.value);if(!(pv>0&&isFinite(pv)))vErr(p.id,'El peso debe ser un número mayor que 0.');
   if(b.value!==''&&!(Number.isInteger(+b.value)&&+b.value>=0))vErr(b.id,'El nº de bultos debe ser un entero igual o mayor que 0.');
-  const L={c:S(c.value.trim()),n:S(n.value.trim()),b:b.value,t:S(t.value.trim()),p:p.value,adr:null};
-  if(q('.la').checked){
-   const u=q('.lu'),ds=q('.ld'),pl=q('.lh'),ge=q('.lg'),tn=q('.lk');
+  const Ln={c:S(c.value.trim()),n:S(n.value.trim()),b:b.value,t:S(t.value.trim()),p:p.value,adr:null};
+  if(q('.la').checked){anyAdr=true;
+   const u=q('.lu'),ds=q('.ld'),pl=q('.lh'),ge=q('.lg'),tn=q('.lk'),qt=q('.lq'),mu=q('.lm'),cat=q('.lcat');
    if(!/^(UN)?\s?\d{4}$/i.test(u.value.trim()))vErr(u.id,'El nº ONU debe tener 4 dígitos (p. ej. UN1203).');
    if(!ds.value.trim())vErr(ds.id,'Indica la designación oficial de transporte.');
    if(!pl.value.trim())vErr(pl.id,'Indica el peligro (clase y riesgos subsidiarios).');
    if(!tn.value.trim())vErr(tn.id,'Indica el código de restricción en túneles (o «-» si no procede).');
-   L.adr={u:normUN(u.value),ds:S(ds.value.trim()),pl:S(pl.value.trim()),ge:ge.value,tn:S(tn.value.trim())};}
-  lines.push(L);});
+   const qv=parseFloat(qt.value);if(!(qv>0&&isFinite(qv)))vErr(qt.id,'Indica la cantidad total de la materia (mayor que 0).');
+   if($('adr_ex').checked){
+    if(cat.value==='')vErr(cat.id,'La exención 1.1.3.6 exige indicar la categoría de transporte en todas las líneas ADR.');
+    if(cat.value==='0')vErr(cat.id,'Las materias de categoría de transporte 0 no pueden acogerse a la exención 1.1.3.6.');
+    pts+=qv*FACT[+cat.value];}
+   Ln.adr={u:normUN(u.value),ds:S(ds.value.trim()),pl:S(pl.value.trim()),ge:ge.value,tn:S(tn.value.trim()),q:String(qv),mu:S(mu.value),cat:cat.value,env:q('.lev').checked,wst:q('.lwt').checked};}
+  lines.push(Ln);});
  if(!lines.length)vErr($('lines').querySelector('.ln').id,'Añade al menos una línea de mercancía.');
+ if(anyAdr){
+  if(!$('c_dir').value.trim())vErr('c_dir','ADR 5.4.1: indica el domicilio del cargador/expedidor.');
+  if(!$('d_dir').value.trim())vErr('d_dir','ADR 5.4.1: indica la dirección del destinatario (dirección del destino).');
+  if($('adr_ex').checked&&pts>1000)vErr('adr_ex','La suma de puntos ('+Math.round(pts*100)/100+') supera 1000: no puede acogerse a la exención 1.1.3.6.');}
+ lastPts=Math.round(pts*100)/100;
  return lines;}
 
 /* ---------- PDF ---------- */
 async function buildPdf(code,url,lines,now,preview){
  const {jsPDF}=window.jspdf;const d=new jsPDF({unit:'mm',format:'a4'});
  const L=15,R=195,W=R-L;let y=0;const qr=preview?null:qrImg(url,8);
- const inc=$('inc_pd').checked,sus=$('sus').value.trim(),cp=$('cp_on').checked;
+ const inc=$('inc_pd').checked,sus=$('sus').value.trim(),anyAdr=lines.some(l=>l.adr);
  const dt=new Date($('f_srv').value).toLocaleString('es-ES',{dateStyle:'short',timeStyle:'short'});
  const hdr=(first)=>{
   if(qr)d.addImage(qr,'PNG',R-32,10,32,32);else{d.setDrawColor(200,0,0);d.rect(R-32,10,32,32);d.setFontSize(8);d.setTextColor(200,0,0);d.text('SIN QR',R-16,27,{align:'center'});}
-  d.setTextColor(0);d.setFont('helvetica','bold');d.setFontSize(18);d.text(cp?'ALBARÁN · CARTA DE PORTE':'ALBARÁN DE TRANSPORTE',L,20);
-  d.setFontSize(9);d.text('Documento electrónico de control administrativo (DeCA)',L,26);
+  d.setTextColor(0);d.setFont('helvetica','bold');d.setFontSize(18);d.text(anyAdr?'ALBARÁN · TRANSPORTE ADR':'ALBARÁN DE TRANSPORTE',L,20);
+  d.setFontSize(9);d.text(anyAdr?'Documento de transporte de mercancías peligrosas por carretera (ADR 5.4.1)':'Documento electrónico de control administrativo (DeCA)',L,26);
   d.setFont('helvetica','normal');d.setFontSize(8);d.setTextColor(80);
-  d.text('Orden FOM/2861/2012 · Resolución de 5 de junio de 2026'+(cp?' · Ley 15/2009':''),L,30.5);
+  d.text('DeCA · Orden FOM/2861/2012 · Resolución de 5 de junio de 2026',L,30.5);
   d.setTextColor(0);d.setFont('helvetica','bold');d.setFontSize(12);d.text('Nº '+code,L,36.5);
   d.setFont('helvetica','normal');d.setFontSize(8.5);
   if(first){d.text('Emisión: '+now.toLocaleString('es-ES')+'    Inicio previsto del servicio: '+dt,L,41);
@@ -400,46 +437,46 @@ async function buildPdf(code,url,lines,now,preview){
   d.setFont('helvetica','bold');d.setFontSize(8.5);d.setTextColor(0);d.text(b.title,x+3,y+4.2);
   d.setFont('helvetica','normal');d.setFontSize(8.5);let yy=y+10.5;b.ls.flat().forEach(t=>{d.text(t,x+3,yy);yy+=4.1;});};
  const pair=(a,b)=>{const A=prep(...a,87),B=prep(...b,87),h=Math.max(A.h,B.h);need(h+4);draw(A,L,h);draw(B,R-87,h);y+=h+4;};
+ const full=(title,rows)=>{const A=prep(title,rows,W);need(A.h+4);draw(A,L,A.h);y+=A.h+4;};
  const cond=[['Conductor',g('h_nom')]];if(inc)cond.push(['DNI/NIE conductor',g('h_dni')],['Teléfono conductor',g('h_tel')]);
- const eur=id=>$(id).value!==''?(+$(id).value).toFixed(2)+' €':'';
  pair(['CARGADOR CONTRACTUAL',[['Nombre',g('c_nom')],['NIF',g('c_nif')],['Domicilio',g('c_dir')]]],
-      ['TRANSPORTISTA EFECTIVO (PORTEADOR)',[['Nombre',g('t_nom')],['NIF',g('t_nif')],['Matrícula',g('t_mat')],...cond]]);
+      ['TRANSPORTISTA EFECTIVO',[['Nombre',g('t_nom')],['NIF',g('t_nif')],['Matrícula',g('t_mat')],...cond]]);
  pair(['ORIGEN (recepción de la mercancía)',[['Lugar',g('o_nom')],['Dirección',g('o_dir')],['C.P. / población',g('o_loc')],['Fecha y hora',dt]]],
       ['DESTINO (entrega)',[['Lugar',g('d_nom')],['Dirección',g('d_dir')],['C.P. / población',g('d_loc')],['Destinatario',g('r_nom')],['NIF destinatario',g('r_nif')]]]);
- // Tabla de mercancías
  const cx=[L,L+24,L+96,L+114,L+146,R];
  const th=()=>{d.setFillColor(232,236,241);d.setDrawColor(120);d.rect(L,y,W,6.5,'FD');d.setFont('helvetica','bold');d.setFontSize(8);d.setTextColor(0);
   ['CÓDIGO','DESCRIPCIÓN / NATURALEZA','BULTOS','TIPO DE BULTO','PESO BRUTO (kg)'].forEach((t,i)=>d.text(t,cx[i]+2,y+4.5));y+=6.5;};
  need(24);th();d.setFont('helvetica','normal');d.setFontSize(9);
- let tb=0,tp=0,anyAdr=false;
+ let tb=0,tp=0;
  lines.forEach(l=>{const lc=d.splitTextToSize(l.c||'—',20),ls=d.splitTextToSize(l.n,68),lt=d.splitTextToSize(l.t||'—',28),h=Math.max(7,Math.max(lc.length,ls.length,lt.length)*4.3+3);
-  let adrT=null,ah=0;if(l.adr){anyAdr=true;adrT=d.splitTextToSize('MATERIA PELIGROSA (ADR) — '+l.adr.u+' · '+l.adr.ds+' · Peligro: '+l.adr.pl+' · Grupo de embalaje: '+(l.adr.ge||'—')+' · Túnel: '+l.adr.tn,W-4);ah=adrT.length*4+3;}
+  let s1=null,s2=null,ah=0;
+  if(l.adr){const a=l.adr;d.setFont('helvetica','bold');d.setFontSize(8);
+   s1=d.splitTextToSize(a.u+', '+a.ds+', '+a.pl+(a.ge?', '+a.ge:'')+', '+a.tn,W-4);
+   d.setFont('helvetica','normal');
+   s2=d.splitTextToSize('Bultos: '+(l.b||'—')+' '+(l.t||'')+' · Cantidad total: '+a.q+' '+a.mu+(a.cat!==''?' · Categoría de transporte: '+a.cat:'')+(a.env?' · PELIGROSO PARA EL MEDIO AMBIENTE':'')+(a.wst?' · RESIDUO':''),W-4);
+   ah=(s1.length+s2.length)*3.8+3;}
   if(y+h+ah>270){d.addPage();hdr(false);th();}
   d.setFont('helvetica','normal');d.setFontSize(9);d.setTextColor(0);d.setDrawColor(120);
   d.rect(L,y,W,h);[1,2,3,4].forEach(i=>d.line(cx[i],y,cx[i],y+h));
   d.text(lc,cx[0]+2,y+5);d.text(ls,cx[1]+2,y+5);d.text(String(l.b||'—'),cx[2]+2,y+5);d.text(lt,cx[3]+2,y+5);d.text(String(l.p),cx[4]+2,y+5);
   tb+=parseFloat(l.b)||0;tp+=parseFloat(l.p)||0;y+=h;
-  if(adrT){d.setFillColor(255,232,230);d.rect(L,y,W,ah,'FD');d.setFont('helvetica','bold');d.setFontSize(8);d.text(adrT,L+2,y+4.2);y+=ah;}});
+  if(l.adr){d.setFillColor(255,232,230);d.rect(L,y,W,ah,'FD');d.setFontSize(8);
+   d.setFont('helvetica','bold');d.text(s1,L+2,y+4);d.setFont('helvetica','normal');d.text(s2,L+2,y+4+s1.length*3.8);y+=ah;}});
  need(8);d.setFont('helvetica','bold');d.setFontSize(9);d.setTextColor(0);d.rect(L,y,W,7);[1,2,3,4].forEach(i=>d.line(cx[i],y,cx[i],y+7));
  d.text('TOTAL',cx[1]+2,y+5);d.text(String(tb||'—'),cx[2]+2,y+5);d.text(String(Math.round(tp*1000)/1000),cx[4]+2,y+5);y+=11;
- if($('obs').value.trim()){const ls=d.splitTextToSize(g('obs'),W-6),h=8+ls.length*4.1+2;need(h+4);
-  d.setFont('helvetica','normal');draw({title:'OBSERVACIONES',ls:[ls],w:W},L,h);y+=h+4;}
- if(cp){
-  pair(['CONTRATO DE TRANSPORTE (CARTA DE PORTE)',[['Lugar y fecha de emisión',(g('e_lug')||'—')+', '+now.toLocaleDateString('es-ES')],['Expedidor',g('x_nom')||'el cargador'],['Marcas y números',g('mrc')],['Instrucciones del cargador',g('ins')]]],
-       ['CONDICIONES ECONÓMICAS',[['Forma de pago del porte',S($('pago').value)],['Precio del transporte',eur('prc')],['Gastos accesorios',eur('gst')],['Reembolso',eur('rbs')],['Valor declarado',eur('vld')]]]);
-  const rs=d.splitTextToSize('Reservas / observaciones: '+(g('res')||''),W-6),rh=Math.max(24,rs.length*4.1+16);
-  need(rh+4);d.setDrawColor(120);d.rect(L,y,W,rh);d.setFillColor(232,236,241);d.rect(L,y,W,6,'FD');
-  d.setFont('helvetica','bold');d.setFontSize(8.5);d.setTextColor(0);d.text('RESERVAS DEL PORTEADOR A LA RECEPCIÓN Y DEL DESTINATARIO A LA ENTREGA',L+3,y+4.2);
-  d.setFont('helvetica','normal');d.text(rs,L+3,y+10.5);d.text('Fecha y hora de entrega: ____ / ____ / ________   ____ : ____',L+3,y+rh-3);y+=rh+4;}
+ if(anyAdr){
+  const rows=[['Expedidor',g('x_nom')||(g('c_nom')+', '+g('c_dir'))],['Destinatario',(g('r_nom')||g('d_nom'))+', '+g('d_dir')+(g('d_loc')?', '+g('d_loc'):'')]];
+  if($('adr_ex').checked)rows.push(['Exención 1.1.3.6','Carga que no excede los límites exentos según el 1.1.3.6. Puntos totales: '+lastPts+' (máximo 1000)']);
+  rows.push(['Instrucciones escritas (ADR 5.4.3)',$('adr_ins').checked?'entregadas al conductor':'pendientes de entregar al conductor']);
+  full('INFORMACIÓN ADR · MERCANCÍAS PELIGROSAS',rows);}
+ full('DATOS COMPLEMENTARIOS',[['Lugar y fecha de emisión',(g('e_lug')||'—')+', '+now.toLocaleDateString('es-ES')],...(anyAdr?[]:[['Expedidor',g('x_nom')||'el cargador']]),['Marcas y números de los bultos',g('mrc')],['Instrucciones del cargador',g('ins')],['Reservas / observaciones',g('res')],...($('obs').value.trim()?[['Observaciones',g('obs')]]:[])]);
  need(48);
  d.setFont('helvetica','bold');d.setFontSize(8.5);d.setTextColor(0);d.text('SELLO Y FIRMA (copia impresa)',L,y+3);y+=6;
- [[cp?'Cargador (firma y sello)':'Cargador contractual',g('c_nif'),L],[cp?'Porteador (firma y sello)':'Transportista efectivo',g('t_nif'),L+61],['Destinatario (recibí)',g('r_nif'),L+122]].forEach(([t,nif,x])=>{
+ [['Cargador contractual',g('c_nif'),L],['Transportista efectivo',g('t_nif'),L+61],['Destinatario (recibí)',g('r_nif'),L+122]].forEach(([t,nif,x])=>{
   d.setDrawColor(120);d.rect(x,y,58,34);d.setFont('helvetica','bold');d.setFontSize(8);d.setTextColor(0);d.text(t,x+2,y+4);
   d.setFont('helvetica','normal');d.setTextColor(80);d.text('NIF: '+(nif||'—'),x+2,y+8.5);});
  y+=38;need(30);d.setFontSize(7);d.setTextColor(80);
- const clause=cp?'Este documento sirve como DeCA y, impreso y firmado por cargador y porteador, como carta de porte del contrato de transporte terrestre de mercancías (Ley 15/2009, arts. 10 y 11), emitida en tres ejemplares originales: el primero para el cargador, el segundo viaja con la mercancía y el tercero queda en poder del porteador. Las anotaciones manuscritas no modifican el DeCA digital: cualquier modificación de sus datos se realiza mediante un nuevo DeCA.':'Los sellos y firmas son opcionales y solo figuran en la copia impresa. No son requisito del DeCA y las anotaciones manuscritas no modifican el documento digital: cualquier modificación se realiza mediante un nuevo DeCA.';
- const cl=d.splitTextToSize(clause,W);d.text(cl,L,y);y+=cl.length*3+3;
- if(cp){d.setFontSize(8);d.setTextColor(0);[['1.º Cargador',L],['2.º Acompaña a la mercancía',L+38],['3.º Porteador',L+110]].forEach(([t,x])=>{d.rect(x,y-2.8,3,3);d.text(t,x+4.5,y);});y+=6;}
+ const cl=d.splitTextToSize('Los sellos y firmas son opcionales y solo figuran en la copia impresa. No son requisito del DeCA y las anotaciones manuscritas no modifican el documento digital: cualquier modificación se realiza mediante un nuevo DeCA.',W);d.text(cl,L,y);y+=cl.length*3+3;
  d.setTextColor(0);d.setFontSize(8);
  if(preview){d.setTextColor(170,0,0);d.text('VISTA PREVIA: este documento no tiene URL ni QR y no es válido como DeCA.',L,y);y+=6;}
  else{d.text('Documento original en línea (el QR dirige a esta URL de descarga directa):',L,y);y+=4;d.setTextColor(0,60,160);const ul=d.splitTextToSize(url,W);d.text(ul,L,y);y+=ul.length*3.6+3;}
@@ -488,6 +525,7 @@ async function run(upload){
   if(!c.owner||!c.repo||!c.token)vErr('g_token','Indica usuario, repositorio y token de GitHub (apartado Repositorios).');
   const info=await repoInfo(c);
   if(info.private)throw new Error('El repositorio de PDFs es PRIVADO: GitHub Pages no puede publicarlos y el QR daría 404. Hazlo público (Settings → General → Danger Zone → Change visibility) y activa Pages.');
+  await ensureNojekyll(c);
   log('Asignando número…');
   let seq=await nextSeq(c,ymd,ym),done=null;
   for(let t=0;t<8&&!done;t++,seq++){
