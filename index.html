@@ -31,6 +31,40 @@
 <p class="note">Resolución de 5/6/2026 (BOE-A-2026-12784). Numeración AAAAMMDD-XXX con reserva previa, QR automático, subida a GitHub y verificación de la URL. El DeCA debe generarse y subirse <b>antes del inicio del servicio</b> y conservarse al menos un año. Los campos con * son obligatorios.</p>
 <div id="sri" class="note" role="status" hidden></div>
 
+
+
+<fieldset><legend>Cargador contractual</legend><div class="g" id="gc"></div></fieldset>
+<fieldset><legend>Transportista efectivo y conductor</legend><div class="g" id="gt"></div></fieldset>
+<fieldset><legend>Origen</legend><div class="g" id="go"></div>
+ <label><input type="checkbox" class="lock" id="sync_o"> Origen como empresa: recordar en todos mis dispositivos (solo si la denominación parece de empresa: S.L., S.A., etc.)</label></fieldset>
+<fieldset><legend>Destino y destinatario</legend><div class="g" id="gd"></div>
+ <label><input type="checkbox" class="lock" id="sync_d"> Destino como empresa: recordar en todos mis dispositivos (solo si la denominación parece de empresa)</label></fieldset>
+
+<fieldset><legend>Mercancía</legend>
+ <div id="lines"></div>
+ <button class="s" onclick="addLine()">+ Añadir línea</button>
+ <label for="obs">Observaciones (opcional, máx. 900 caracteres)</label><textarea id="obs" rows="2" maxlength="900"></textarea>
+</fieldset>
+
+<fieldset><legend>Datos complementarios del transporte</legend><details><summary>Mostrar / ocultar datos complementarios (opcional)</summary><div class="g" id="gp"></div></details></fieldset>
+
+<fieldset><legend>Mercancías peligrosas (ADR): datos del documento</legend>
+ <p class="note">Solo se aplica si alguna línea está marcada como mercancía peligrosa. El documento de transporte del ADR (5.4.1) exige, entre otros datos: por cada materia, nº ONU, designación oficial, peligro, grupo de embalaje y código de túnel; nº y descripción de bultos; cantidad total; y expedidor y destinatario con su dirección. Confirma el contenido con tu consejero de seguridad ADR.</p>
+ <label><input type="checkbox" id="adr_ex"> Acogida a la exención 1.1.3.6 (requiere categoría de transporte en todas las líneas; máximo 1000 puntos; no admite categoría 0)</label>
+ <label><input type="checkbox" id="adr_ins"> Se han entregado al conductor las instrucciones escritas ADR (5.4.3)</label>
+</fieldset>
+
+<fieldset><legend>Opciones del documento y protección de datos</legend>
+ <label for="sus">Sustituye al DeCA nº (solo si es una modificación; el original se conserva)</label><input id="sus" placeholder="20261018-001" autocomplete="off" maxlength="13">
+ <label><input type="checkbox" class="lock" id="inc_pd"> Incluir DNI y teléfono del conductor en el PDF (no exigidos por la norma; el PDF es accesible para quien tenga el enlace)</label>
+ <label for="g_dpo">Contacto para ejercer derechos de protección de datos (email o teléfono; obligatorio si incluyes DNI/teléfono)</label><input id="g_dpo" autocomplete="off" maxlength="120">
+ <label><input type="checkbox" id="foreign"> Permitir identificadores no españoles (no validar formato de NIF/DNI)</label>
+</fieldset>
+
+<button id="bgo" onclick="run(true)">Generar, subir y verificar</button>
+<button class="s" onclick="run(false)">Vista previa (no sube, no válida)</button>
+<div id="log" role="status" aria-live="polite"></div>
+
 <fieldset><legend>Ajustes protegidos</legend>
  <p id="lockst" role="status">Los ajustes (casillas) están bloqueados con sus valores por defecto. Es un bloqueo contra cambios accidentales, no una medida de seguridad.</p>
  <label for="adm">Contraseña de ajustes</label><input id="adm" type="password" autocomplete="off">
@@ -67,40 +101,6 @@
  <button class="s" onclick="syncNow()">Sincronizar ahora</button>
  <button class="s" onclick="cloudClear()">Vaciar catálogo en la nube</button>
 </details></fieldset>
-
-<fieldset><legend>Cargador contractual</legend><div class="g" id="gc"></div></fieldset>
-<fieldset><legend>Transportista efectivo y conductor</legend><div class="g" id="gt"></div></fieldset>
-<fieldset><legend>Origen</legend><div class="g" id="go"></div>
- <label><input type="checkbox" class="lock" id="sync_o"> Origen como empresa: recordar en todos mis dispositivos (solo si la denominación parece de empresa: S.L., S.A., etc.)</label></fieldset>
-<fieldset><legend>Destino y destinatario</legend><div class="g" id="gd"></div>
- <label><input type="checkbox" class="lock" id="sync_d"> Destino como empresa: recordar en todos mis dispositivos (solo si la denominación parece de empresa)</label></fieldset>
-
-<fieldset><legend>Mercancía</legend>
- <div id="lines"></div>
- <button class="s" onclick="addLine()">+ Añadir línea</button>
- <label for="obs">Observaciones (opcional, máx. 900 caracteres)</label><textarea id="obs" rows="2" maxlength="900"></textarea>
-</fieldset>
-
-<fieldset><legend>Datos complementarios del transporte</legend><div class="g" id="gp"></div></fieldset>
-
-<fieldset><legend>Mercancías peligrosas (ADR): datos del documento</legend>
- <p class="note">Solo se aplica si alguna línea está marcada como mercancía peligrosa. El documento de transporte del ADR (5.4.1) exige, entre otros datos: por cada materia, nº ONU, designación oficial, peligro, grupo de embalaje y código de túnel; nº y descripción de bultos; cantidad total; y expedidor y destinatario con su dirección. Confirma el contenido con tu consejero de seguridad ADR.</p>
- <label><input type="checkbox" id="adr_ex"> Acogida a la exención 1.1.3.6 (requiere categoría de transporte en todas las líneas; máximo 1000 puntos; no admite categoría 0)</label>
- <label><input type="checkbox" id="adr_ins"> Se han entregado al conductor las instrucciones escritas ADR (5.4.3)</label>
-</fieldset>
-
-<fieldset><legend>Opciones del documento y protección de datos</legend>
- <label for="sus">Sustituye al DeCA nº (solo si es una modificación; el original se conserva)</label><input id="sus" placeholder="20261018-001" autocomplete="off" maxlength="13">
- <label><input type="checkbox" class="lock" id="inc_pd"> Incluir DNI y teléfono del conductor en el PDF (no exigidos por la norma; el PDF es accesible para quien tenga el enlace)</label>
- <label for="g_dpo">Contacto para ejercer derechos de protección de datos (email o teléfono; obligatorio si incluyes DNI/teléfono)</label><input id="g_dpo" autocomplete="off" maxlength="120">
- <label><input type="checkbox" class="lock" id="foreign"> Permitir identificadores no españoles (no validar formato de NIF/DNI)</label>
- <label><input type="checkbox" class="lock" id="mem_on"> Recordar TODOS los datos (incluidos los del conductor) solo en este equipo; se borran a los 180 días; no usar en equipos compartidos</label>
-</fieldset>
-
-<button id="bgo" onclick="run(true)">Generar, subir y verificar</button>
-<button class="s" onclick="run(false)">Vista previa (no sube, no válida)</button>
-<button class="s" onclick="forget(true)">Borrar datos recordados en este equipo</button>
-<div id="log" role="status" aria-live="polite"></div>
 </main>
 
 <script>
@@ -122,11 +122,11 @@ if(Object.values(SRI).some(v=>!v)){const b=$('sri');b.hidden=false;b.textContent
 
 /* ---------- Formulario ---------- */
 const FORM={
- gc:[['c_nom','Nombre o denominación social *',1],['c_nif','NIF *',1],['c_dir','Domicilio']],
- gt:[['t_nom','Nombre o denominación social *',1],['t_nif','NIF *',1],['t_mat','Matrícula del vehículo'],['f_srv','Fecha y hora previstas de inicio del servicio *',1,'type="datetime-local"'],['h_nom','Nombre del conductor'],['h_dni','DNI/NIE del conductor'],['h_tel','Teléfono del conductor',0,'type="tel" autocomplete="tel"']],
+ gc:[['c_nom','Nombre o denominación social *',1],['c_nif','NIF / CIF *',1],['c_dir','Domicilio']],
+ gt:[['t_nom','Nombre o denominación social *',1],['t_nif','NIF / CIF *',1],['t_mat','Matrícula del vehículo'],['f_srv','Fecha y hora previstas de inicio del servicio *',1,'type="datetime-local"'],['h_nom','Nombre del conductor'],['h_dni','DNI/NIE del conductor'],['h_tel','Teléfono del conductor',0,'type="tel" autocomplete="tel"']],
  go:[['o_nom','Lugar / empresa de origen *',1],['o_dir','Dirección'],['o_loc','C.P. y población']],
- gd:[['d_nom','Lugar / empresa de destino *',1],['d_dir','Dirección'],['d_loc','C.P. y población'],['r_nom','Destinatario (nombre o razón social)'],['r_nif','NIF del destinatario']],
- gp:[['e_lug','Lugar de emisión'],['x_nom','Expedidor, si es distinto del cargador (nombre y dirección)'],['mrc','Marcas y números de los bultos'],['ins','Instrucciones del cargador'],['res','Reservas / observaciones al recibir la mercancía']]};
+ gd:[['d_nom','Lugar / empresa de destino *',1],['d_dir','Dirección'],['d_loc','C.P. y población'],['r_nom','Destinatario (nombre o razón social)'],['r_nif','NIF / CIF del destinatario']],
+ gp:[['x_nom','Expedidor, si es distinto del cargador (nombre y dirección)'],['ins','Instrucciones del cargador'],['res','Reservas / observaciones al recibir la mercancía']]};
 const LAB={};
 Object.entries(FORM).forEach(([g,fs])=>{$(g).innerHTML=fs.map(([id,lab,req,ex])=>{LAB[id]=lab.replace(' *','');ex=ex||'';
  return '<div><label for="'+id+'">'+lab+'</label><input id="'+id+'" maxlength="150" '+(req?'required aria-required="true" ':'')+(ex.includes('autocomplete')?'':'autocomplete="off" ')+ex+'></div>';}).join('');});
@@ -141,23 +141,21 @@ async function unlockSettings(){try{if((await sha($('adm').value))===ADMIN_HASH)
 ['g_rnd','sync_on','sync_o','sync_d'].forEach(id=>$(id).checked=true);
 setLock(true);
 
-/* ---------- Memoria: local (opt-in, todo) y nube (solo no personal) ---------- */
-const MEMF=['c_nom','c_nif','c_dir','t_nom','t_nif','t_mat','h_nom','h_dni','h_tel','o_nom','o_dir','o_loc','d_nom','d_dir','d_loc','r_nom','r_nif','e_lug','x_nom','mrc','ins','res'];
+/* ---------- Memoria: catálogo en DeCA-datos (solo datos no personales) ---------- */
+['deca_loc','deca_loc_ts','deca_mem_on'].forEach(k=>store.del(k)); /* limpia memoria local de versiones anteriores */
+const MEMF=['c_nom','c_nif','c_dir','t_nom','t_nif','t_mat','o_nom','o_dir','o_loc','d_nom','d_dir','d_loc','r_nom','r_nif'];
 const DLK=MEMF.concat(['n','lc','tb','un','ds','pl','tn']);
-const GROUPS={c:['c_nom','c_nif','c_dir'],t:['t_nom','t_nif'],h:['h_nom','h_dni','h_tel'],o:['o_nom','o_dir','o_loc'],d:['d_nom','d_dir','d_loc'],r:['r_nom','r_nif']};
+const GROUPS={c:['c_nom','c_nif','c_dir'],t:['t_nom','t_nif'],o:['o_nom','o_dir','o_loc'],d:['d_nom','d_dir','d_loc'],r:['r_nom','r_nif']};
 const DEF={tb:['Palé','Caja','Saco','Bidón','Rollo','Granel','Otros'],tn:['(B)','(B/D)','(B/E)','(C/D)','(C/E)','(D/E)','(E)','-'],pl:['1','2.1','2.2','2.3','3','4.1','4.2','4.3','5.1','5.2','6.1','6.2','7','8','9']};
 const BADK=new Set(['__proto__','constructor','prototype']);
-const LOC={mem:{},prof:{}},CLD={mem:{},prof:{}};
+const CLD={mem:{},prof:{}};
 const safeParse=t=>{try{const v=JSON.parse(t||'{}');return v&&typeof v==='object'?v:{}}catch(e){return {}}};
 function load(S,raw){const o=safeParse(raw);if(o.mem&&typeof o.mem==='object')S.mem=o.mem;if(o.prof&&typeof o.prof==='object')S.prof=o.prof;}
-if(store.get('deca_mem_on')==='1'){
- if(Date.now()-(parseInt(store.get('deca_loc_ts'),10)||0)>180*864e5){['deca_loc','deca_loc_ts','deca_mem_on'].forEach(k=>store.del(k));}
- else{load(LOC,store.get('deca_loc'));$('mem_on').checked=true;}}
 load(CLD,store.get('deca_cld'));
-const look=(g,n)=>((LOC.prof[g]||{})[n])||((CLD.prof[g]||{})[n]);
+const look=(g,n)=>(CLD.prof[g]||{})[n];
 function dl(key){let el=$('dl_'+key);if(!el){el=document.createElement('datalist');el.id='dl_'+key;document.body.appendChild(el);}
  const a=k=>Array.isArray(k)?k:[];
- el.innerHTML=[...new Set([...a(LOC.mem[key]),...a(CLD.mem[key]),...(DEF[key]||[])])].map(v=>'<option value="'+esc(v)+'">').join('');}
+ el.innerHTML=[...new Set([...a(CLD.mem[key]),...(DEF[key]||[])])].map(v=>'<option value="'+esc(v)+'">').join('');}
 const dlAll=()=>DLK.forEach(dl);
 function addMem(S,key,v){v=(v||'').trim();if(!v||BADK.has(key))return;S.mem[key]=[v,...(S.mem[key]||[]).filter(x=>x!==v)].slice(0,200);}
 function setProf(S,g,name,obj){name=(name||'').trim();if(!name||BADK.has(name))return;S.prof[g]=S.prof[g]||{};S.prof[g][name]=obj;}
@@ -168,19 +166,17 @@ Object.entries(GROUPS).forEach(([g,f])=>$(f[0]).addEventListener('change',()=>{
 
 function looksCompany(name){const n=' '+String(name).toUpperCase().replace(/[.,()]/g,' ').replace(/\s+/g,' ')+' ';
  return [' S L ',' SL ',' SLU ',' S L U ',' SA ',' S A ',' SAU ',' S A U ',' SLL ',' S L L ',' SCOOP ',' S COOP ',' SC ',' S C ',' CB ',' C B ',' SRL ',' SOCIEDAD ',' COOPERATIVA ',' FUNDACION ',' FUNDACIÓN ',' ASOCIACION ',' ASOCIACIÓN ',' AYUNTAMIENTO ',' COMUNIDAD DE BIENES ',' LTD ',' GMBH ',' SAS ',' SARL ',' SPA ',' BV ',' NV ',' AG ',' INC ',' LLC '].some(t=>n.includes(t));}
-/* Reglas: qué puede ir a la nube (nunca personas físicas ni conductor) */
+/* Reglas: qué puede ir al catálogo (nunca personas físicas ni conductor) */
 function cloudRules(){const f=$('foreign').checked;return{
  c:!f&&cifOk($('c_nif').value),t:!f&&cifOk($('t_nif').value),r:!f&&$('r_nif').value.trim()!==''&&cifOk($('r_nif').value),
- o:$('sync_o').checked&&looksCompany($('o_nom').value),d:$('sync_d').checked&&looksCompany($('d_nom').value),h:false};}
+ o:$('sync_o').checked&&looksCompany($('o_nom').value),d:$('sync_d').checked&&looksCompany($('d_nom').value)};}
 function readLines(){return [...document.querySelectorAll('.lw')].map(w=>{const q=s=>w.querySelector(s).value.trim();return{
  lc:q('.lc'),n:q('.ln'),t:q('.lt'),a:w.querySelector('.la').checked,u:q('.lu'),ds:q('.ld'),pl:q('.lh'),ge:q('.lg'),tn:q('.lk'),cat:q('.lcat')};});}
-function writeStore(S,cloud){
- const ok=cloud?cloudRules():{c:1,t:1,h:1,o:1,d:1,r:1};
+function writeStore(S){
+ const ok=cloudRules();
  Object.entries(GROUPS).forEach(([g,f])=>{if(!ok[g])return;f.forEach(k=>addMem(S,k,$(k).value));
   setProf(S,g,$(f[0]).value,Object.fromEntries(f.slice(1).map(k=>[k,$(k).value])));});
- if(!cloud||ok.t)addMem(S,'t_mat',$('t_mat').value);
- addMem(S,'e_lug',$('e_lug').value);
- if(!cloud)['x_nom','mrc','ins','res'].forEach(k=>addMem(S,k,$(k).value));
+ if(ok.t)addMem(S,'t_mat',$('t_mat').value);
  readLines().forEach(l=>{if(!l.n)return;
   addMem(S,'n',l.n);addMem(S,'lc',l.lc);addMem(S,'tb',l.t);
   const un=l.a?('UN'+(l.u.match(/\d{4}/)||[''])[0]):'';
@@ -188,9 +184,6 @@ function writeStore(S,cloud){
   if(l.a&&un.length===6){addMem(S,'un',un);addMem(S,'ds',l.ds);addMem(S,'pl',l.pl);addMem(S,'tn',l.tn);setProf(S,'ad',un,{ds:l.ds,pl:l.pl,ge:l.ge,tn:l.tn,cat:l.cat});}});
 }
 function cacheCld(){if($('sync_on').checked)store.set('deca_cld',JSON.stringify({mem:CLD.mem,prof:CLD.prof}));}
-function saveLoc(){store.set('deca_mem_on','1');store.set('deca_loc',JSON.stringify(LOC));store.set('deca_loc_ts',String(Date.now()));}
-function forget(say){LOC.mem={};LOC.prof={};CLD.mem={};CLD.prof={};['deca_loc','deca_loc_ts','deca_mem_on','deca_cld'].forEach(k=>store.del(k));dlAll();if(say)log('Datos recordados borrados de este equipo (el catálogo en la nube no se toca).');}
-$('mem_on').addEventListener('change',()=>{if(!$('mem_on').checked){LOC.mem={};LOC.prof={};['deca_loc','deca_loc_ts','deca_mem_on'].forEach(k=>store.del(k));dlAll();log('Memoria local de datos desactivada y borrada.');}});
 $('sync_on').addEventListener('change',()=>{if($('sync_on').checked)startSync();});
 
 /* ---------- Sincronización con repositorio PRIVADO ---------- */
@@ -293,6 +286,16 @@ $('lines').addEventListener('change',e=>{const t=e.target,w=t.closest('.lw');if(
 const normUN=v=>{const m=String(v).match(/\d{4}/);return m?'UN'+m[0]:String(v).trim();};
 
 /* ---------- Utilidades ---------- */
+function qrPng(url,code,orig,dest){return new Promise((res,rej)=>{const im=new Image();im.onload=()=>{
+ const W=Math.max(im.width,420),P=14,LH=22,cv=document.createElement('canvas');cv.width=W;cv.height=10;let ctx=cv.getContext('2d');
+ const f='16px Arial, sans-serif',fb='bold 20px Arial, sans-serif';
+ const wrap=(t)=>{ctx.font=f;const out=[];let line='';String(t).split(' ').forEach(w=>{const tt=line?line+' '+w:w;if(ctx.measureText(tt).width>W-2*P&&line){out.push(line);line=w;}else line=tt;});if(line)out.push(line);return out;};
+ const lines=[{t:'Nº '+code,f:fb}];
+ wrap('Origen: '+orig).slice(0,2).forEach(t=>lines.push({t,f}));wrap('Destino: '+dest).slice(0,2).forEach(t=>lines.push({t,f}));
+ cv.height=im.height+10+lines.length*LH+P;ctx=cv.getContext('2d');
+ ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);ctx.drawImage(im,(W-im.width)/2,0);ctx.fillStyle='#000';ctx.textAlign='center';
+ lines.forEach((l,i)=>{ctx.font=l.f;ctx.fillText(l.t,W/2,im.height+10+(i+1)*LH-4);});
+ res(cv.toDataURL('image/png'));};im.onerror=()=>rej(new Error('imagen del QR no disponible'));im.src=qrImg(url,10);});}
 function rnd(){const a=new Uint8Array(6);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(16).padStart(2,'0')).join('');}
 function qrImg(url,cell){const q=qrcode(0,'M');q.addData(url);q.make();return q.createDataURL(cell,2);}
 function b64(u8){let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s);}
@@ -301,10 +304,11 @@ const okc=ch=>{const c=ch.codePointAt(0);return (c>=32&&c<=255)||CP.has(ch);};
 function S(v){v=String(v==null?'':v).replace(/[\r\n\t]+/g,' ');let o='';for(const ch of v){if(okc(ch))o+=ch;else{bad.add(ch);const b=ch.normalize('NFD').replace(/[\u0300-\u036f]/g,'');o+=(b&&b!==ch&&[...b].every(okc))?b:'?';}}return o;}
 const g=id=>S($(id).value);
 function vErr(id,msg){const e=new Error(msg);e.field=id;throw e;}
+const nrm=v=>String(v).toUpperCase().replace(/[\s.-]/g,'').replace(/^ES(?=[A-Z0-9]{9}$)/,'');
 const LET='TRWAGMYFPDXBNJZSQVHLCKE';
-function dniNie(v){v=v.toUpperCase().replace(/[\s-]/g,'');let m=v.match(/^(\d{8})([A-Z])$/);if(m)return LET[parseInt(m[1],10)%23]===m[2];
+function dniNie(v){v=nrm(v);let m=v.match(/^(\d{8})([A-Z])$/);if(m)return LET[parseInt(m[1],10)%23]===m[2];
  m=v.match(/^([XYZ])(\d{7})([A-Z])$/);if(m)return LET[parseInt('XYZ'.indexOf(m[1])+m[2],10)%23]===m[3];return false;}
-function cifOk(v){v=String(v).toUpperCase().replace(/[\s-]/g,'');const m=v.match(/^([ABCDEFGHJKLMNPQRSUVW])(\d{7})([0-9A-J])$/);if(!m)return false;
+function cifOk(v){v=nrm(v);const m=v.match(/^([ABCDEFGHJKLMNPQRSUVW])(\d{7})([0-9A-J])$/);if(!m)return false;
  let sp=0,si=0;for(let i=0;i<7;i++){let n=+m[2][i];if(i%2===0){n*=2;si+=Math.floor(n/10)+n%10;}else sp+=n;}
  const c=(10-((sp+si)%10))%10,l='JABCDEFGHI'[c];
  if('PQRSNW'.includes(m[1]))return m[3]===l;if('ABEH'.includes(m[1]))return m[3]===String(c);return m[3]===String(c)||m[3]===l;}
@@ -377,7 +381,7 @@ let lastPts=0;
 function readForm(upload){
  ['c_nom','c_nif','t_nom','t_nif','o_nom','d_nom','f_srv'].forEach(k=>{if(!$(k).value.trim())vErr(k,'Campo obligatorio: '+LAB[k]+'.');});
  if(!$('foreign').checked){
-  ['c_nif','t_nif'].forEach(k=>{if(!nifOk($(k).value))vErr(k,'El NIF de '+(k==='c_nif'?'cargador':'transportista')+' no tiene un formato/dígito de control válido.');});
+  ['c_nif','t_nif'].forEach(k=>{if(!nifOk($(k).value))vErr(k,'El NIF de '+(k==='c_nif'?'cargador':'transportista')+' no es un NIF/CIF válido (formato o dígito de control).');});
   if($('r_nif').value.trim()&&!nifOk($('r_nif').value))vErr('r_nif','El NIF del destinatario no es válido.');
   if($('h_dni').value.trim()&&!dniNie($('h_dni').value))vErr('h_dni','El DNI/NIE del conductor no es válido.');}
  if($('h_tel').value.trim()&&!/^[+\d][\d\s().-]{6,19}$/.test($('h_tel').value.trim()))vErr('h_tel','Teléfono no válido.');
@@ -419,8 +423,13 @@ async function buildPdf(code,url,lines,now,preview){
  const L=15,R=195,W=R-L;let y=0;const qr=preview?null:qrImg(url,8);
  const inc=$('inc_pd').checked,sus=$('sus').value.trim(),anyAdr=lines.some(l=>l.adr);
  const dt=new Date($('f_srv').value).toLocaleString('es-ES',{dateStyle:'short',timeStyle:'short'});
+ const qo=g('o_nom')+(g('o_loc')?' · '+g('o_loc'):''),qd=g('d_nom')+(g('d_loc')?' · '+g('d_loc'):'');
+ const clip=(s,n)=>{const a=d.splitTextToSize(String(s),40);return a.length>n?[...a.slice(0,n-1),a[n-1].slice(0,-3)+'...']:a;};
  const hdr=(first)=>{
-  if(qr)d.addImage(qr,'PNG',R-32,10,32,32);else{d.setDrawColor(200,0,0);d.rect(R-32,10,32,32);d.setFontSize(8);d.setTextColor(200,0,0);d.text('SIN QR',R-16,27,{align:'center'});}
+  if(qr)d.addImage(qr,'PNG',R-35,8,30,30);else{d.setDrawColor(200,0,0);d.rect(R-35,8,30,30);d.setFontSize(8);d.setTextColor(200,0,0);d.text('SIN QR',R-20,24,{align:'center'});}
+  let ty=41.5;d.setTextColor(0);d.setFont('helvetica','bold');d.setFontSize(7);d.text('Nº '+code,R-20,ty,{align:'center'});ty+=3;
+  d.setFont('helvetica','normal');d.setFontSize(6.5);
+  [['Origen: ',qo],['Destino: ',qd]].forEach(([k,v])=>{clip(k+v,2).forEach(t=>{d.text(t,R-40,ty);ty+=2.7;});});
   d.setTextColor(0);d.setFont('helvetica','bold');d.setFontSize(18);d.text(anyAdr?'ALBARÁN · TRANSPORTE ADR':'ALBARÁN DE TRANSPORTE',L,20);
   d.setFontSize(9);d.text(anyAdr?'Documento de transporte de mercancías peligrosas por carretera (ADR 5.4.1)':'Documento electrónico de control administrativo (DeCA)',L,26);
   d.setFont('helvetica','normal');d.setFontSize(8);d.setTextColor(80);
@@ -429,7 +438,7 @@ async function buildPdf(code,url,lines,now,preview){
   d.setFont('helvetica','normal');d.setFontSize(8.5);
   if(first){d.text('Emisión: '+now.toLocaleString('es-ES')+'    Inicio previsto del servicio: '+dt,L,41);
    if(sus){d.setTextColor(170,0,0);d.text('Sustituye y anula el DeCA nº '+sus+' (conservado a efectos de trazabilidad)',L,45);d.setTextColor(0);}}
-  d.setDrawColor(120);d.line(L,47.5,R,47.5);y=52;};
+  d.setDrawColor(120);d.line(L,57,R,57);y=61;};
  hdr(true);
  const need=h=>{if(y+h>278){d.addPage();hdr(false);}};
  const prep=(title,rows,w)=>{const ls=rows.map(([k,v])=>d.splitTextToSize(k+': '+(v&&String(v).trim()?v:'—'),w-6));return{title,ls,w,h:8+ls.flat().length*4.1+2};};
@@ -441,7 +450,7 @@ async function buildPdf(code,url,lines,now,preview){
  const cond=[['Conductor',g('h_nom')]];if(inc)cond.push(['DNI/NIE conductor',g('h_dni')],['Teléfono conductor',g('h_tel')]);
  pair(['CARGADOR CONTRACTUAL',[['Nombre',g('c_nom')],['NIF',g('c_nif')],['Domicilio',g('c_dir')]]],
       ['TRANSPORTISTA EFECTIVO',[['Nombre',g('t_nom')],['NIF',g('t_nif')],['Matrícula',g('t_mat')],...cond]]);
- pair(['ORIGEN (recepción de la mercancía)',[['Lugar',g('o_nom')],['Dirección',g('o_dir')],['C.P. / población',g('o_loc')],['Fecha y hora',dt]]],
+ pair(['ORIGEN',[['Lugar',g('o_nom')],['Dirección',g('o_dir')],['C.P. / población',g('o_loc')],['Fecha y hora',dt]]],
       ['DESTINO (entrega)',[['Lugar',g('d_nom')],['Dirección',g('d_dir')],['C.P. / población',g('d_loc')],['Destinatario',g('r_nom')],['NIF destinatario',g('r_nif')]]]);
  const cx=[L,L+24,L+96,L+114,L+146,R];
  const th=()=>{d.setFillColor(232,236,241);d.setDrawColor(120);d.rect(L,y,W,6.5,'FD');d.setFont('helvetica','bold');d.setFontSize(8);d.setTextColor(0);
@@ -469,12 +478,14 @@ async function buildPdf(code,url,lines,now,preview){
   if($('adr_ex').checked)rows.push(['Exención 1.1.3.6','Carga que no excede los límites exentos según el 1.1.3.6. Puntos totales: '+lastPts+' (máximo 1000)']);
   rows.push(['Instrucciones escritas (ADR 5.4.3)',$('adr_ins').checked?'entregadas al conductor':'pendientes de entregar al conductor']);
   full('INFORMACIÓN ADR · MERCANCÍAS PELIGROSAS',rows);}
- full('DATOS COMPLEMENTARIOS',[['Lugar y fecha de emisión',(g('e_lug')||'—')+', '+now.toLocaleDateString('es-ES')],...(anyAdr?[]:[['Expedidor',g('x_nom')||'el cargador']]),['Marcas y números de los bultos',g('mrc')],['Instrucciones del cargador',g('ins')],['Reservas / observaciones',g('res')],...($('obs').value.trim()?[['Observaciones',g('obs')]]:[])]);
+ {const rows=[];if(!anyAdr&&g('x_nom'))rows.push(['Expedidor',g('x_nom')]);if(g('ins'))rows.push(['Instrucciones del cargador',g('ins')]);if(g('res'))rows.push(['Reservas / observaciones',g('res')]);if($('obs').value.trim())rows.push(['Observaciones',g('obs')]);if(rows.length)full('DATOS COMPLEMENTARIOS',rows);}
  need(48);
  d.setFont('helvetica','bold');d.setFontSize(8.5);d.setTextColor(0);d.text('SELLO Y FIRMA (copia impresa)',L,y+3);y+=6;
- [['Cargador contractual',g('c_nif'),L],['Transportista efectivo',g('t_nif'),L+61],['Destinatario (recibí)',g('r_nif'),L+122]].forEach(([t,nif,x])=>{
+ [['Cargador contractual',g('c_nom'),g('c_nif'),L],['Transportista efectivo',g('t_nom'),g('t_nif'),L+61],['Destinatario (recibí)',g('r_nom')||g('d_nom'),g('r_nif'),L+122]].forEach(([t,nom,nif,x])=>{
   d.setDrawColor(120);d.rect(x,y,58,34);d.setFont('helvetica','bold');d.setFontSize(8);d.setTextColor(0);d.text(t,x+2,y+4);
-  d.setFont('helvetica','normal');d.setTextColor(80);d.text('NIF: '+(nif||'—'),x+2,y+8.5);});
+  d.setFont('helvetica','normal');d.setTextColor(60);d.setFontSize(7.5);
+  const nl=d.splitTextToSize('Nombre: '+(nom||'—'),54).slice(0,3);d.text(nl,x+2,y+8.3);
+  d.text('NIF: '+(nif||'—'),x+2,y+8.3+nl.length*3.3);});
  y+=38;need(30);d.setFontSize(7);d.setTextColor(80);
  const cl=d.splitTextToSize('Los sellos y firmas son opcionales y solo figuran en la copia impresa. No son requisito del DeCA y las anotaciones manuscritas no modifican el documento digital: cualquier modificación se realiza mediante un nuevo DeCA.',W);d.text(cl,L,y);y+=cl.length*3+3;
  d.setTextColor(0);d.setFontSize(8);
@@ -502,9 +513,8 @@ async function verify(url,el){
 
 /* ---------- Recordar tras generar ---------- */
 async function remember(){
- if($('mem_on').checked){writeStore(LOC,false);saveLoc();}
  if($('sync_on').checked){
-  try{if(!pulled)await pull();writeStore(CLD,true);cacheCld();await push();log('Catálogo sincronizado (solo datos no personales).','ok');}
+  try{if(!pulled)await pull();writeStore(CLD);cacheCld();await push();log('Catálogo sincronizado (solo datos no personales).','ok');}
   catch(e){log('No se pudo sincronizar el catálogo: '+e.message,'er');}}
  dlAll();}
 
@@ -542,7 +552,8 @@ async function run(upload){
   if(bad.size)log('Aviso: se han sustituido caracteres no admitidos por el PDF: '+[...bad].join(' ')+'. Revisa el documento.','er');
   log('Subido: DeCA '+done.code+' (copia descargada en tu equipo).','ok');
   logH('URL del documento: <a href="'+esc(done.url)+'" target="_blank" rel="noopener">'+esc(done.url)+'</a>');
-  const q=qrImg(done.url,10);logH('<a href="'+q+'" download="'+esc(done.name.replace('.pdf','_QR.png'))+'">Descargar QR como PNG</a>');
+  try{const q=await qrPng(done.url,done.code,$('o_nom').value.trim()+($('o_loc').value.trim()?' · '+$('o_loc').value.trim():''),$('d_nom').value.trim()+($('d_loc').value.trim()?' · '+$('d_loc').value.trim():''));
+   logH('<a href="'+q+'" download="'+esc(done.name.replace('.pdf','_QR.png'))+'">Descargar QR (PNG con nº, origen y destino)</a>');}catch(e){log('No se pudo generar el PNG del QR: '+e.message,'er');}
   const el=log('');verify(done.url,el);
   await remember();
  }catch(e){
