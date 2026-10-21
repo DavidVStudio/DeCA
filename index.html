@@ -115,7 +115,7 @@ const logH=(h,c)=>{const p=document.createElement('div');if(c)p.className=c;p.in
 
 /* ---------- Librerías (SRI opcional) ---------- */
 const LIBS=[['jspdf','https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'],['pdflib','https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js'],['qr','https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js']];
-const SRI={jspdf:'sha512-plOdviVmws4Y3JAvbnpfKb2hVxKM1lCwsi3vmElYRj+tiDLffZ4FVUj5a8vyKJ9pIgl8JCAHEJ4D1iUKBecswg==',pdflib:'sha384-weMABwrltA6jWR8DDe9Jp5blk+tZQh7ugpCsF3JwSA53WZM9/14PjS5LAJNHNjAI',qr:'sha384-mZT2gIty7ZDdOGkxfP6joZcYdMW1Jvj9dRlfpTmaJAKKXTqzygtB22k7FLe+KZC1'};
+const SRI={jspdf:'sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==',pdflib:'sha512-z8IYLHO8bTgFqj+yrPyIJnzBDf7DDhWwiEsk4sY+Oe6J2M+WQequeGS7qioI5vT6rXgVRb4K1UVQC5ER7MKzKQ==',qr:'sha512-ZDSPMa/JM1D+7kdg2x3BsruQ6T/JpJo3jWDWkCZsP+5yVyp1KfESqLI+7RqB5k24F7p2cV7i2YHh/890y6P6Sw=='};
 const libsReady=Promise.all(LIBS.map(([k,u])=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=u;s.crossOrigin='anonymous';if(SRI[k])s.integrity=SRI[k];
  s.onload=res;s.onerror=()=>rej(new Error('No se pudo cargar la librería '+k+' (sin conexión, bloqueo o hash SRI incorrecto).'));document.head.appendChild(s);}))).catch(e=>e);
 if(Object.values(SRI).some(v=>!v)){const b=$('sri');b.hidden=false;b.textContent='Aviso de seguridad: las librerías se cargan sin verificación de integridad (SRI). Rellena el objeto SRI del código con los hashes de cdnjs.';}
