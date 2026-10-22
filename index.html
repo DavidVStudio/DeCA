@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'self' https://api.github.com https://*.github.io; object-src 'none'; base-uri 'none'; form-action 'none'">
-<title>Generador de DeCA y documento ADR</title>
+<title>Generador de DeCA y documento de transporte</title>
 <style>
  body{font-family:system-ui,sans-serif;max-width:940px;margin:0 auto;padding:16px;background:#f6f7f9;color:#1b1f24}
  h1{font-size:1.4rem} fieldset{background:#fff;border:1px solid #d5d9df;border-radius:8px;margin:14px 0;padding:12px 16px}
@@ -27,7 +27,7 @@
 </head>
 <body>
 <main>
-<h1>Generador de DeCA / albarán / documento de transporte ADR</h1>
+<h1>Generador de DeCA / documento de transporte / ADR</h1>
 <p class="note">Resolución de 5/6/2026 (BOE-A-2026-12784). Numeración AAAAMMDD-XXX con reserva previa, QR automático, subida a GitHub y verificación de la URL. El DeCA debe generarse y subirse <b>antes del inicio del servicio</b> y conservarse al menos un año. Los campos con * son obligatorios.</p>
 <div id="sri" class="note" role="status" hidden></div>
 
@@ -55,7 +55,7 @@
 </fieldset>
 
 <fieldset><legend>Opciones del documento y protección de datos</legend>
- <label for="sus">Sustituye al DeCA nº (solo si es una modificación; el original se conserva)</label><input id="sus" placeholder="20261018-001" autocomplete="off" maxlength="13">
+ <label for="sus">Sustituye al DeCA nº (solo si es una modificación de datos o un cambio de vehículo durante el servicio; el original se conserva)</label><input id="sus" placeholder="20261018-001" autocomplete="off" maxlength="13">
  <label><input type="checkbox" class="lock" id="inc_pd"> Incluir DNI y teléfono del conductor en el PDF (no exigidos por la norma; el PDF es accesible para quien tenga el enlace)</label>
  <label for="g_dpo">Contacto para ejercer derechos de protección de datos (email o teléfono; obligatorio si incluyes DNI/teléfono)</label><input id="g_dpo" autocomplete="off" maxlength="120">
  <label><input type="checkbox" id="foreign"> Permitir identificadores no españoles (no validar formato de NIF/DNI)</label>
@@ -122,8 +122,8 @@ if(Object.values(SRI).some(v=>!v)){const b=$('sri');b.hidden=false;b.textContent
 
 /* ---------- Formulario ---------- */
 const FORM={
- gc:[['c_nom','Nombre o denominación social *',1],['c_nif','NIF / CIF *',1],['c_dir','Domicilio']],
- gt:[['t_nom','Nombre o denominación social *',1],['t_nif','NIF / CIF *',1],['t_mat','Matrícula del vehículo'],['f_srv','Fecha y hora previstas de inicio del servicio *',1,'type="datetime-local"'],['h_nom','Nombre del conductor'],['h_dni','DNI/NIE del conductor'],['h_tel','Teléfono del conductor',0,'type="tel" autocomplete="tel"']],
+ gc:[['c_nom','Nombre o denominación social *',1],['c_nif','NIF / CIF *',1],['c_dir','Domicilio *',1]],
+ gt:[['t_nom','Nombre o denominación social *',1],['t_nif','NIF / CIF *',1],['t_mat','Matrícula del vehículo (tractor) *',1],['t_rem','Matrícula del remolque / semirremolque (si es conjunto articulado)'],['f_srv','Fecha y hora previstas de inicio del servicio *',1,'type="datetime-local"'],['h_nom','Nombre del conductor'],['h_dni','DNI/NIE del conductor'],['h_tel','Teléfono del conductor',0,'type="tel" autocomplete="tel"']],
  go:[['o_nom','Lugar / empresa de origen *',1],['o_dir','Dirección'],['o_loc','C.P. y población']],
  gd:[['d_nom','Lugar / empresa de destino *',1],['d_dir','Dirección'],['d_loc','C.P. y población'],['r_nom','Destinatario (nombre o razón social)'],['r_nif','NIF / CIF del destinatario']],
  gp:[['x_nom','Expedidor, si es distinto del cargador (nombre y dirección)'],['ins','Instrucciones del cargador'],['res','Reservas / observaciones al recibir la mercancía']]};
@@ -143,7 +143,7 @@ setLock(true);
 
 /* ---------- Memoria: catálogo en DeCA-datos (solo datos no personales) ---------- */
 ['deca_loc','deca_loc_ts','deca_mem_on'].forEach(k=>store.del(k)); /* limpia memoria local de versiones anteriores */
-const MEMF=['c_nom','c_nif','c_dir','t_nom','t_nif','t_mat','o_nom','o_dir','o_loc','d_nom','d_dir','d_loc','r_nom','r_nif'];
+const MEMF=['c_nom','c_nif','c_dir','t_nom','t_nif','t_mat','t_rem','o_nom','o_dir','o_loc','d_nom','d_dir','d_loc','r_nom','r_nif'];
 const DLK=MEMF.concat(['n','lc','tb','un','ds','pl','tn']);
 const GROUPS={c:['c_nom','c_nif','c_dir'],t:['t_nom','t_nif'],o:['o_nom','o_dir','o_loc'],d:['d_nom','d_dir','d_loc'],r:['r_nom','r_nif']};
 const DEF={tb:['Palé','Caja','Saco','Bidón','Rollo','Granel','Otros'],tn:['(B)','(B/D)','(B/E)','(C/D)','(C/E)','(D/E)','(E)','-'],pl:['1','2.1','2.2','2.3','3','4.1','4.2','4.3','5.1','5.2','6.1','6.2','7','8','9']};
@@ -176,7 +176,7 @@ function writeStore(S){
  const ok=cloudRules();
  Object.entries(GROUPS).forEach(([g,f])=>{if(!ok[g])return;f.forEach(k=>addMem(S,k,$(k).value));
   setProf(S,g,$(f[0]).value,Object.fromEntries(f.slice(1).map(k=>[k,$(k).value])));});
- if(ok.t)addMem(S,'t_mat',$('t_mat').value);
+ if(ok.t){addMem(S,'t_mat',$('t_mat').value);addMem(S,'t_rem',$('t_rem').value);}
  readLines().forEach(l=>{if(!l.n)return;
   addMem(S,'n',l.n);addMem(S,'lc',l.lc);addMem(S,'tb',l.t);
   const un=l.a?('UN'+(l.u.match(/\d{4}/)||[''])[0]):'';
@@ -290,7 +290,7 @@ function qrPng(url,code,orig,dest){return new Promise((res,rej)=>{const im=new I
  const W=Math.max(im.width,420),P=14,LH=22,cv=document.createElement('canvas');cv.width=W;cv.height=10;let ctx=cv.getContext('2d');
  const f='16px Arial, sans-serif',fb='bold 20px Arial, sans-serif';
  const wrap=(t)=>{ctx.font=f;const out=[];let line='';String(t).split(' ').forEach(w=>{const tt=line?line+' '+w:w;if(ctx.measureText(tt).width>W-2*P&&line){out.push(line);line=w;}else line=tt;});if(line)out.push(line);return out;};
- const lines=[{t:'Nº '+code,f:fb}];
+ const lines=[{t:'DeCA Nº '+code,f:fb}];
  wrap('Origen: '+orig).slice(0,2).forEach(t=>lines.push({t,f}));wrap('Destino: '+dest).slice(0,2).forEach(t=>lines.push({t,f}));
  cv.height=im.height+10+lines.length*LH+P;ctx=cv.getContext('2d');
  ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);ctx.drawImage(im,(W-im.width)/2,0);ctx.fillStyle='#000';ctx.textAlign='center';
@@ -379,7 +379,7 @@ async function check(){
 const FACT={1:50,2:3,3:1,4:0};
 let lastPts=0;
 function readForm(upload){
- ['c_nom','c_nif','t_nom','t_nif','o_nom','d_nom','f_srv'].forEach(k=>{if(!$(k).value.trim())vErr(k,'Campo obligatorio: '+LAB[k]+'.');});
+ ['c_nom','c_nif','c_dir','t_nom','t_nif','t_mat','o_nom','d_nom','f_srv'].forEach(k=>{if(!$(k).value.trim())vErr(k,'Campo obligatorio (art. 6 Orden FOM/2861/2012): '+LAB[k]+'.');});
  if(!$('foreign').checked){
   ['c_nif','t_nif'].forEach(k=>{if(!nifOk($(k).value))vErr(k,'El NIF de '+(k==='c_nif'?'cargador':'transportista')+' no es un NIF/CIF válido (formato o dígito de control).');});
   if($('r_nif').value.trim()&&!nifOk($('r_nif').value))vErr('r_nif','El NIF del destinatario no es válido.');
@@ -427,16 +427,16 @@ async function buildPdf(code,url,lines,now,preview){
  const clip=(s,n)=>{const a=d.splitTextToSize(String(s),40);return a.length>n?[...a.slice(0,n-1),a[n-1].slice(0,-3)+'...']:a;};
  const hdr=(first)=>{
   if(qr)d.addImage(qr,'PNG',R-35,8,30,30);else{d.setDrawColor(200,0,0);d.rect(R-35,8,30,30);d.setFontSize(8);d.setTextColor(200,0,0);d.text('SIN QR',R-20,24,{align:'center'});}
-  let ty=41.5;d.setTextColor(0);d.setFont('helvetica','bold');d.setFontSize(7);d.text('Nº '+code,R-20,ty,{align:'center'});ty+=3;
+  let ty=41.5;d.setTextColor(0);d.setFont('helvetica','bold');d.setFontSize(7);d.text('DeCA Nº '+code,R-20,ty,{align:'center'});ty+=3;
   d.setFont('helvetica','normal');d.setFontSize(6.5);
   [['Origen: ',qo],['Destino: ',qd]].forEach(([k,v])=>{clip(k+v,2).forEach(t=>{d.text(t,R-40,ty);ty+=2.7;});});
-  d.setTextColor(0);d.setFont('helvetica','bold');d.setFontSize(18);d.text(anyAdr?'ALBARÁN · TRANSPORTE ADR':'ALBARÁN DE TRANSPORTE',L,20);
+  d.setTextColor(0);d.setFont('helvetica','bold');d.setFontSize(18);d.text(anyAdr?'DOCUMENTO DE TRANSPORTE · ADR':'DOCUMENTO DE TRANSPORTE',L,20);
   d.setFontSize(9);d.text(anyAdr?'Documento de transporte de mercancías peligrosas por carretera (ADR 5.4.1)':'Documento electrónico de control administrativo (DeCA)',L,26);
   d.setFont('helvetica','normal');d.setFontSize(8);d.setTextColor(80);
   d.text('DeCA · Orden FOM/2861/2012 · Resolución de 5 de junio de 2026',L,30.5);
   d.setTextColor(0);d.setFont('helvetica','bold');d.setFontSize(12);d.text('Nº '+code,L,36.5);
   d.setFont('helvetica','normal');d.setFontSize(8.5);
-  if(first){d.text('Emisión: '+now.toLocaleString('es-ES')+'    Inicio previsto del servicio: '+dt,L,41);
+  if(first){d.text('Emisión: '+now.toLocaleString('es-ES')+'    Fecha de realización del transporte: '+dt,L,41);
    if(sus){d.setTextColor(170,0,0);d.text('Sustituye y anula el DeCA nº '+sus+' (conservado a efectos de trazabilidad)',L,45);d.setTextColor(0);}}
   d.setDrawColor(120);d.line(L,57,R,57);y=61;};
  hdr(true);
@@ -449,8 +449,8 @@ async function buildPdf(code,url,lines,now,preview){
  const full=(title,rows)=>{const A=prep(title,rows,W);need(A.h+4);draw(A,L,A.h);y+=A.h+4;};
  const cond=[['Conductor',g('h_nom')]];if(inc)cond.push(['DNI/NIE conductor',g('h_dni')],['Teléfono conductor',g('h_tel')]);
  pair(['CARGADOR CONTRACTUAL',[['Nombre',g('c_nom')],['NIF',g('c_nif')],['Domicilio',g('c_dir')]]],
-      ['TRANSPORTISTA EFECTIVO',[['Nombre',g('t_nom')],['NIF',g('t_nif')],['Matrícula',g('t_mat')],...cond]]);
- pair(['ORIGEN',[['Lugar',g('o_nom')],['Dirección',g('o_dir')],['C.P. / población',g('o_loc')],['Fecha y hora',dt]]],
+      ['TRANSPORTISTA EFECTIVO',[['Nombre',g('t_nom')],['NIF',g('t_nif')],['Matrícula',g('t_mat')],...(g('t_rem')?[['Remolque/semirremolque',g('t_rem')]]:[]),...cond]]);
+ pair(['ORIGEN',[['Lugar',g('o_nom')],['Dirección',g('o_dir')],['C.P. / población',g('o_loc')],['Fecha de realización del transporte',dt]]],
       ['DESTINO (entrega)',[['Lugar',g('d_nom')],['Dirección',g('d_dir')],['C.P. / población',g('d_loc')],['Destinatario',g('r_nom')],['NIF destinatario',g('r_nif')]]]);
  const cx=[L,L+24,L+96,L+114,L+146,R];
  const th=()=>{d.setFillColor(232,236,241);d.setDrawColor(120);d.rect(L,y,W,6.5,'FD');d.setFont('helvetica','bold');d.setFontSize(8);d.setTextColor(0);
@@ -486,7 +486,10 @@ async function buildPdf(code,url,lines,now,preview){
   d.setFont('helvetica','normal');d.setTextColor(60);d.setFontSize(7.5);
   const nl=d.splitTextToSize('Nombre: '+(nom||'—'),54).slice(0,3);d.text(nl,x+2,y+8.3);
   d.text('NIF: '+(nif||'—'),x+2,y+8.3+nl.length*3.3);});
- y+=38;need(30);d.setFontSize(7);d.setTextColor(80);
+ y+=38;need(38);
+ d.setFont('helvetica','normal');d.setFontSize(8);d.setTextColor(0);d.text('Ejemplares (Orden FOM/2861/2012, art. 8):',L,y);
+ [['Cargador contractual',L+62],['Transportista efectivo (a bordo del vehículo)',L+100]].forEach(([t,x])=>{d.rect(x,y-2.8,3,3);d.text(t,x+4.5,y);});y+=7;
+ d.setFontSize(7);d.setTextColor(80);
  const cl=d.splitTextToSize('Los sellos y firmas son opcionales y solo figuran en la copia impresa. No son requisito del DeCA y las anotaciones manuscritas no modifican el documento digital: cualquier modificación se realiza mediante un nuevo DeCA.',W);d.text(cl,L,y);y+=cl.length*3+3;
  d.setTextColor(0);d.setFontSize(8);
  if(preview){d.setTextColor(170,0,0);d.text('VISTA PREVIA: este documento no tiene URL ni QR y no es válido como DeCA.',L,y);y+=6;}
@@ -542,7 +545,9 @@ async function run(upload){
    const code=ymd+'-'+pad(seq,3);
    if(!(await reserve(c,ym,code))){log('El número '+code+' ya estaba reservado; pruebo el siguiente…');continue;}
    const name=code+($('g_rnd').checked?'_'+rnd():'')+'.pdf',url=c.base+yy+'/'+mm+'/'+name;
-   const bytes=await buildPdf(code,url,lines,now,false);log('Número '+code+' reservado. Subiendo '+name+'…');
+   const bytes=await buildPdf(code,url,lines,now,false);
+   if(bytes.length>5*1024*1024)throw new Error('El PDF supera los 5 MB permitidos por la Resolución (apartado segundo.1). El número '+code+' ha quedado reservado sin documento.');
+   log('Número '+code+' reservado. Subiendo '+name+'…');
    const r=await gh(c,'/contents/'+c.dir.split('/').map(encodeURIComponent).join('/')+'/'+yy+'/'+mm+'/'+encodeURIComponent(name),
     {method:'PUT',body:JSON.stringify({message:'DeCA '+code,content:b64(bytes),branch:c.branch})},3);
    if(r.status===201||r.status===200)done={code,name,url,bytes};
